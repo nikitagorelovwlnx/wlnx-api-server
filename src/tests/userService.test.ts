@@ -86,7 +86,7 @@ describe('UserService', () => {
     });
 
     it('should return null for non-existent user', async () => {
-      const user = await userService.getUserById('non-existent-id');
+      const user = await userService.getUserById('550e8400-e29b-41d4-a716-446655440000');
       expect(user).toBeNull();
     });
   });
@@ -109,7 +109,7 @@ describe('UserService', () => {
     });
 
     it('should return null for non-existent user', async () => {
-      const result = await userService.updateUser('non-existent-id', {
+      const result = await userService.updateUser('550e8400-e29b-41d4-a716-446655440000', {
         first_name: 'Test',
       });
       expect(result).toBeNull();
