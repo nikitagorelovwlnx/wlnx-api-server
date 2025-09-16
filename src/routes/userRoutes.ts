@@ -9,9 +9,14 @@ const userService = new UserService(db);
 // Register user
 router.post('/register', async (req: Request, res: Response) => {
   try {
+    console.log('Registration request headers:', req.headers);
+    console.log('Registration request body:', req.body);
+    console.log('Content-Type:', req.get('Content-Type'));
+    
     const { email, password, first_name, last_name } = req.body;
 
     if (!email || !password) {
+      console.log('Missing email or password:', { email: !!email, password: !!password });
       return res.status(400).json({ error: 'Email and password are required' });
     }
 
