@@ -37,9 +37,8 @@ export interface TelegramIntegration {
 export interface InterviewResult {
   id: string;
   user_id: string;
-  title?: string;
-  content: string;
-  metadata: Record<string, any>;
+  transcription: string;
+  summary: string;
   created_at: Date;
   updated_at: Date;
 }
@@ -68,9 +67,8 @@ export interface CreateTelegramIntegrationRequest {
 }
 
 export interface CreateInterviewResultRequest {
-  title?: string;
-  content: string;
-  metadata?: Record<string, any>;
+  transcription: string;
+  summary: string;
 }
 
 export interface AuthResponse {
