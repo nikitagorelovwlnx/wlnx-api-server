@@ -1,0 +1,55 @@
+version: '3.8'
+
+services:
+  postgres-prod:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_DB: wlnx_api_prod
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD_FILE: /run/secrets/db_password
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_prod_data:/var/lib/postgresql/data
+    secrets:
+      - db_password
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  app-prod:
+    build: .
+    environment:
+      NODE_ENV: production
+      DB_HOST: postgres-prod
+      DB_PORT: 5432
+      DB_NAME: wlnx_api_prod
+      DB_USER: postgres
+      DB_PASSWORD_FILE: /run/secrets/db_password
+      JWT_SECRET_FILE: /run/secrets/jwt_secret
+      JWT_EXPIRES_IN: 7d
+    ports:
+      - "3000:3000"
+    depends_on:
+      postgres-prod:
+        condition: service_healthy
+    secrets:
+      - db_password
+      - jwt_secret
+    command: >
+      sh -c "
+        npm run migrate &&
+        npm run seed:prod &&
+        npm start
+      "
+
+volumes:
+  postgres_prod_data:
+
+secrets:
+  db_password:
+    file: ./secrets/db_password.txt
+  jwt_secret:
+    file: ./secrets/jwt_secret.txt
