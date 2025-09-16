@@ -14,9 +14,8 @@ export class InterviewService {
       .insert({
         id: uuidv4(),
         user_id: userId,
-        title: data.title || null,
-        content: data.content,
-        metadata: data.metadata || {},
+        transcription: data.transcription,
+        summary: data.summary,
       })
       .returning('*');
 
@@ -43,13 +42,19 @@ export class InterviewService {
   }
 
   async updateInterviewResult(id: string, userId: string, updates: Partial<CreateInterviewResultRequest>): Promise<InterviewResult | null> {
+    const updateData: any = { updated_at: new Date() };
+    
+    if (updates.transcription !== undefined) {
+      updateData.transcription = updates.transcription;
+    }
+    if (updates.summary !== undefined) {
+      updateData.summary = updates.summary;
+    }
+
     const [result] = await this.db('interview_results')
       .where('id', id)
       .where('user_id', userId)
-      .update({
-        ...updates,
-        updated_at: new Date(),
-      })
+      .update(updateData)
       .returning('*');
 
     return result || null;

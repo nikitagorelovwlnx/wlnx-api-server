@@ -9,16 +9,19 @@ const interviewService = new InterviewService(db);
 // Create interview result
 router.post('/', authenticateToken, async (req: AuthenticatedRequest, res: Response) => {
   try {
-    const { title, content, metadata } = req.body;
+    const { transcription, summary } = req.body;
 
-    if (!content) {
-      return res.status(400).json({ error: 'Content is required' });
+    if (!transcription) {
+      return res.status(400).json({ error: 'Transcription is required' });
+    }
+
+    if (!summary) {
+      return res.status(400).json({ error: 'Summary is required' });
     }
 
     const result = await interviewService.createInterviewResult(req.user!.id, {
-      title,
-      content,
-      metadata,
+      transcription,
+      summary,
     });
 
     res.status(201).json({ result });
@@ -65,12 +68,11 @@ router.get('/:id', authenticateToken, async (req: AuthenticatedRequest, res: Res
 router.put('/:id', authenticateToken, async (req: AuthenticatedRequest, res: Response) => {
   try {
     const { id } = req.params;
-    const { title, content, metadata } = req.body;
+    const { transcription, summary } = req.body;
 
     const result = await interviewService.updateInterviewResult(id, req.user!.id, {
-      title,
-      content,
-      metadata,
+      transcription,
+      summary,
     });
 
     if (!result) {
