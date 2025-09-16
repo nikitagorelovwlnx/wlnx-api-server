@@ -1,0 +1,47 @@
+version: '3.8'
+
+services:
+  postgres-dev:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_DB: wlnx_api_dev
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: dev_password
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_dev_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  app-dev:
+    build: .
+    environment:
+      NODE_ENV: development
+      DB_HOST: postgres-dev
+      DB_PORT: 5432
+      DB_NAME: wlnx_api_dev
+      DB_USER: postgres
+      DB_PASSWORD: dev_password
+      JWT_SECRET: dev-jwt-secret-key-change-in-production
+      JWT_EXPIRES_IN: 7d
+    ports:
+      - "3000:3000"
+    volumes:
+      - .:/app
+      - /app/node_modules
+    depends_on:
+      postgres-dev:
+        condition: service_healthy
+    command: >
+      sh -c "
+        npm run migrate &&
+        npm run seed:dev &&
+        npm run dev
+      "
+
+volumes:
+  postgres_dev_data:

@@ -1,0 +1,20 @@
+[
+  {
+    "email": "admin@company.com",
+    "password": "secure_admin_password_123",
+    "first_name": "Admin",
+    "last_name": "User"
+  },
+  {
+    "email": "manager@company.com",
+    "password": "secure_manager_password_456",
+    "first_name": "Manager",
+    "last_name": "User"
+  },
+  {
+    "email": "user@company.com",
+    "password": "secure_user_password_789",
+    "first_name": "Regular",
+    "last_name": "User"
+  }
+]

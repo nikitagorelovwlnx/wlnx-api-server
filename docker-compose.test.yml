@@ -1,0 +1,45 @@
+version: '3.8'
+
+services:
+  postgres-test:
+    image: postgres:16
+    environment:
+      POSTGRES_DB: wlnx_api_test
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+    ports:
+      - "5434:5432"
+    volumes:
+      - postgres_test_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  app-test:
+    build: .
+    environment:
+      NODE_ENV: test
+      DB_HOST: postgres-test
+      DB_PORT: 5432
+      DB_NAME: wlnx_api_test
+      TEST_DB_NAME: wlnx_api_test
+      DB_USER: postgres
+      DB_PASSWORD: password
+      JWT_SECRET: test-jwt-secret
+      JWT_EXPIRES_IN: 1h
+    ports:
+      - "3001:3000"
+    depends_on:
+      postgres-test:
+        condition: service_healthy
+    command: >
+      sh -c "
+        npm run migrate &&
+        npm run seed:test &&
+        npm test
+      "
+
+volumes:
+  postgres_test_data:
