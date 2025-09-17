@@ -92,59 +92,31 @@ export async function seed(knex: Knex): Promise<void> {
 
   await knex('telegram_integrations').insert(telegramIntegrations);
 
-  // Create development interview results
+  // Create development wellness coach interview results
   const interviewResults = [
     {
       id: '550e8400-e29b-41d4-a716-446655440019',
       user_id: '550e8400-e29b-41d4-a716-446655440010',
-      title: 'Frontend Developer Interview',
-      content: 'Discussed React, TypeScript, and modern frontend practices. Candidate showed strong knowledge of hooks and state management.',
-      metadata: JSON.stringify({ 
-        score: 88, 
-        duration: 50, 
-        interviewer: 'Sarah Wilson',
-        position: 'Frontend Developer',
-        skills: ['React', 'TypeScript', 'CSS']
-      }),
+      transcription: 'Coach: Welcome to your wellness coaching session. How are you feeling today? Client: I\'ve been feeling quite overwhelmed lately with work stress. Coach: Let\'s explore some stress management techniques that might help...',
+      summary: 'Initial wellness coaching session. Client reported high work stress levels. Introduced basic stress management techniques including breathing exercises and time management strategies.',
     },
     {
       id: '550e8400-e29b-41d4-a716-446655440020',
       user_id: '550e8400-e29b-41d4-a716-446655440010',
-      title: 'System Design Interview',
-      content: 'Designed a scalable chat application. Good understanding of microservices, databases, and caching strategies.',
-      metadata: JSON.stringify({ 
-        score: 82, 
-        duration: 75, 
-        interviewer: 'Mike Chen',
-        position: 'Senior Backend Developer',
-        topics: ['Microservices', 'Database Design', 'Caching']
-      }),
+      transcription: 'Coach: How did the breathing exercises work for you this week? Client: They really helped during stressful moments at work. I feel more centered now. Coach: That\'s excellent progress. Let\'s build on that...',
+      summary: 'Follow-up session showing positive progress with stress management techniques. Client successfully implementing breathing exercises with good results. Expanding to include mindfulness practices.',
     },
     {
       id: '550e8400-e29b-41d4-a716-446655440021',
       user_id: '550e8400-e29b-41d4-a716-446655440012',
-      title: 'DevOps Engineer Interview',
-      content: 'Covered Docker, Kubernetes, CI/CD pipelines, and cloud infrastructure. Strong practical experience.',
-      metadata: JSON.stringify({ 
-        score: 91, 
-        duration: 60, 
-        interviewer: 'Lisa Brown',
-        position: 'DevOps Engineer',
-        tools: ['Docker', 'Kubernetes', 'AWS', 'Jenkins']
-      }),
+      transcription: 'Coach: I understand you want to focus on physical wellness today. Client: Yes, I\'ve been sedentary for too long and want to establish a sustainable exercise routine. Coach: Let\'s start with realistic goals...',
+      summary: 'Physical wellness focused session. Client seeking to establish regular exercise routine. Created personalized fitness plan with gradual progression and accountability measures.',
     },
     {
       id: '550e8400-e29b-41d4-a716-446655440022',
       user_id: '550e8400-e29b-41d4-a716-446655440013',
-      title: 'Product Manager Interview',
-      content: 'Discussed product strategy, user research, and agile methodologies. Excellent communication skills.',
-      metadata: JSON.stringify({ 
-        score: 87, 
-        duration: 45, 
-        interviewer: 'David Kim',
-        position: 'Product Manager',
-        areas: ['Strategy', 'User Research', 'Agile']
-      }),
+      transcription: 'Coach: How has your sleep been since we implemented the new evening routine? Client: Much better! I\'m falling asleep faster and feeling more rested. Coach: That\'s wonderful to hear...',
+      summary: 'Sleep wellness session showing significant improvement. Client successfully following evening routine with positive sleep quality results. Discussing long-term sleep hygiene maintenance.',
     },
   ];
 
