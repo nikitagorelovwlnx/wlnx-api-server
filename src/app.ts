@@ -2,8 +2,6 @@ import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import * as dotenv from 'dotenv';
-
-import userRoutes from './routes/userRoutes';
 import calendarRoutes from './routes/calendarRoutes';
 import telegramRoutes from './routes/telegramRoutes';
 import interviewRoutes from './routes/interviewRoutes';
@@ -24,7 +22,6 @@ app.get('/health', (req, res) => {
 });
 
 // Routes
-app.use('/api/users', userRoutes);
 app.use('/api/calendar', calendarRoutes);
 app.use('/api/telegram', telegramRoutes);
 app.use('/api/interviews', interviewRoutes);

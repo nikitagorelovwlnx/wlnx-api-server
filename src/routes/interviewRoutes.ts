@@ -1,15 +1,18 @@
-import { Router, Response } from 'express';
+import { Router, Response, Request } from 'express';
 import { InterviewService } from '../services/interviewService';
-import { authenticateToken, AuthenticatedRequest } from '../middleware/auth';
 import db from '../database/knex';
 
 const router = Router();
 const interviewService = new InterviewService(db);
 
 // Create interview result
-router.post('/', authenticateToken, async (req: AuthenticatedRequest, res: Response) => {
+router.post('/', async (req: Request, res: Response) => {
   try {
-    const { transcription, summary } = req.body;
+    const { email, transcription, summary } = req.body;
+
+    if (!email) {
+      return res.status(400).json({ error: 'Email is required' });
+    }
 
     if (!transcription) {
       return res.status(400).json({ error: 'Transcription is required' });
@@ -19,7 +22,7 @@ router.post('/', authenticateToken, async (req: AuthenticatedRequest, res: Respo
       return res.status(400).json({ error: 'Summary is required' });
     }
 
-    const result = await interviewService.createInterviewResult(req.user!.id, {
+    const result = await interviewService.createInterviewResult(email, {
       transcription,
       summary,
     });
@@ -34,13 +37,18 @@ router.post('/', authenticateToken, async (req: AuthenticatedRequest, res: Respo
   }
 });
 
-// Get user's interview results
-router.get('/', authenticateToken, async (req: AuthenticatedRequest, res: Response) => {
+// Get interview results
+router.get('/', async (req: Request, res: Response) => {
   try {
+    const email = req.query.email as string;
     const limit = parseInt(req.query.limit as string) || 50;
     const offset = parseInt(req.query.offset as string) || 0;
 
-    const results = await interviewService.getInterviewResultsByUserId(req.user!.id, limit, offset);
+    if (!email) {
+      return res.status(400).json({ error: 'Email parameter is required' });
+    }
+
+    const results = await interviewService.getInterviewResultsByUserId(email, limit, offset);
     res.json({ results });
   } catch (error) {
     res.status(500).json({ error: 'Internal server error' });
@@ -48,11 +56,16 @@ router.get('/', authenticateToken, async (req: AuthenticatedRequest, res: Respon
 });
 
 // Get specific interview result
-router.get('/:id', authenticateToken, async (req: AuthenticatedRequest, res: Response) => {
+router.get('/:id', async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
+    const email = req.query.email as string;
     
-    const result = await interviewService.getInterviewResultById(id, req.user!.id);
+    if (!email) {
+      return res.status(400).json({ error: 'Email parameter is required' });
+    }
+    
+    const result = await interviewService.getInterviewResultById(id, email);
 
     if (!result) {
       return res.status(404).json({ error: 'Interview result not found' });
@@ -65,12 +78,16 @@ router.get('/:id', authenticateToken, async (req: AuthenticatedRequest, res: Res
 });
 
 // Update interview result
-router.put('/:id', authenticateToken, async (req: AuthenticatedRequest, res: Response) => {
+router.put('/:id', async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
-    const { transcription, summary } = req.body;
+    const { email, transcription, summary } = req.body;
 
-    const result = await interviewService.updateInterviewResult(id, req.user!.id, {
+    if (!email) {
+      return res.status(400).json({ error: 'Email is required' });
+    }
+
+    const result = await interviewService.updateInterviewResult(id, email, {
       transcription,
       summary,
     });
@@ -86,11 +103,16 @@ router.put('/:id', authenticateToken, async (req: AuthenticatedRequest, res: Res
 });
 
 // Delete interview result
-router.delete('/:id', authenticateToken, async (req: AuthenticatedRequest, res: Response) => {
+router.delete('/:id', async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
+    const { email } = req.body;
     
-    const success = await interviewService.deleteInterviewResult(id, req.user!.id);
+    if (!email) {
+      return res.status(400).json({ error: 'Email is required' });
+    }
+    
+    const success = await interviewService.deleteInterviewResult(id, email);
 
     if (!success) {
       return res.status(404).json({ error: 'Interview result not found' });
