@@ -75,23 +75,20 @@ export async function seed(knex: Knex): Promise<void> {
     {
       id: '550e8400-e29b-41d4-a716-446655440007',
       user_id: '550e8400-e29b-41d4-a716-446655440001',
-      title: 'Test Technical Interview',
-      content: 'This is a test interview result with technical questions and answers.',
-      metadata: JSON.stringify({ score: 85, duration: 45, interviewer: 'John Doe' }),
+      transcription: 'Coach: How are you feeling today? Client: I feel stressed about work and having trouble sleeping. Coach: Let\'s explore some relaxation techniques...',
+      summary: 'Client reported work stress and sleep issues. Discussed mindfulness techniques and work-life balance strategies. Recommended daily meditation practice.',
     },
     {
       id: '550e8400-e29b-41d4-a716-446655440008',
       user_id: '550e8400-e29b-41d4-a716-446655440001',
-      title: 'Test Behavioral Interview',
-      content: 'This is a test behavioral interview result.',
-      metadata: JSON.stringify({ score: 90, duration: 30, interviewer: 'Jane Smith' }),
+      transcription: 'Coach: What brings you to wellness coaching today? Client: I want to develop better habits for physical and mental health...',
+      summary: 'Initial wellness coaching session focused on goal setting. Client interested in developing healthy habits, exercise routine, and stress management techniques.',
     },
     {
       id: '550e8400-e29b-41d4-a716-446655440009',
       user_id: '550e8400-e29b-41d4-a716-446655440002',
-      title: 'Test System Design Interview',
-      content: 'This is a test system design interview result.',
-      metadata: JSON.stringify({ score: 78, duration: 60, interviewer: 'Bob Johnson' }),
+      transcription: 'Coach: How has your week been with the new routine? Client: Much better! I\'ve been following the morning meditation and feel more centered...',
+      summary: 'Follow-up session showing positive progress. Client successfully implementing morning meditation routine and reporting improved focus and stress management.',
     },
   ];
 

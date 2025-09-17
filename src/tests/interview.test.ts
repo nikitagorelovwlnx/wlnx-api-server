@@ -1,59 +1,37 @@
 import request from 'supertest';
-import { app } from '../index';
-import db from '../database/connection';
+import { app } from '../app';
+import { db } from '../database/knex';
 
 describe('Wellness Coach Interview API', () => {
-  let authToken: string;
-  let userId: string;
-  let interviewId: string;
-
-  beforeAll(async () => {
-    // Create a test user and get auth token
-    const userResponse = await request(app)
-      .post('/auth/register')
+  // Helper function to create a user and get auth token
+  const createUserAndGetToken = async (email: string = 'test@example.com') => {
+    const response = await request(app)
+      .post('/api/users/register')
       .send({
-        email: 'test@example.com',
+        email,
         password: 'testpassword123',
         first_name: 'Test',
         last_name: 'User'
       });
-
-    if (userResponse.status === 201) {
-      authToken = userResponse.body.token;
-      userId = userResponse.body.user.id;
-    } else {
-      // User might already exist, try login
-      const loginResponse = await request(app)
-        .post('/auth/login')
-        .send({
-          email: 'test@example.com',
-          password: 'testpassword123'
-        });
-      
-      authToken = loginResponse.body.token;
-      userId = loginResponse.body.user.id;
-    }
-  });
-
-  afterAll(async () => {
-    // Clean up test data
-    if (interviewId) {
-      await db('interview_results').where('id', interviewId).del();
-    }
-    await db('users').where('email', 'test@example.com').del();
-    await db.destroy();
-  });
+    
+    return {
+      token: response.body.token,
+      userId: response.body.user.id,
+    };
+  };
 
   describe('POST /interviews', () => {
     it('should create a new wellness coach interview', async () => {
+      const { token, userId } = await createUserAndGetToken('create-interview@example.com');
+      
       const interviewData = {
         transcription: 'This is a test transcription of a wellness coaching session. Coach: How are you feeling today? Client: I feel stressed about work...',
         summary: 'Client discussed work-related stress. Recommended mindfulness techniques and work-life balance strategies.'
       };
 
       const response = await request(app)
-        .post('/interviews')
-        .set('Authorization', `Bearer ${authToken}`)
+        .post('/api/interviews')
+        .set('Authorization', `Bearer ${token}`)
         .send(interviewData);
 
       expect(response.status).toBe(201);
@@ -63,14 +41,14 @@ describe('Wellness Coach Interview API', () => {
       expect(response.body.result.summary).toBe(interviewData.summary);
       expect(response.body.result).toHaveProperty('created_at');
       expect(response.body.result).toHaveProperty('updated_at');
-
-      interviewId = response.body.result.id;
     });
 
     it('should return 400 if transcription is missing', async () => {
+      const { token } = await createUserAndGetToken('missing-transcription@example.com');
+      
       const response = await request(app)
-        .post('/interviews')
-        .set('Authorization', `Bearer ${authToken}`)
+        .post('/api/interviews')
+        .set('Authorization', `Bearer ${token}`)
         .send({
           summary: 'Test summary without transcription'
         });
@@ -80,9 +58,11 @@ describe('Wellness Coach Interview API', () => {
     });
 
     it('should return 400 if summary is missing', async () => {
+      const { token } = await createUserAndGetToken('missing-summary@example.com');
+      
       const response = await request(app)
-        .post('/interviews')
-        .set('Authorization', `Bearer ${authToken}`)
+        .post('/api/interviews')
+        .set('Authorization', `Bearer ${token}`)
         .send({
           transcription: 'Test transcription without summary'
         });
@@ -93,7 +73,7 @@ describe('Wellness Coach Interview API', () => {
 
     it('should return 401 if no auth token provided', async () => {
       const response = await request(app)
-        .post('/interviews')
+        .post('/api/interviews')
         .send({
           transcription: 'Test transcription',
           summary: 'Test summary'
@@ -105,9 +85,20 @@ describe('Wellness Coach Interview API', () => {
 
   describe('GET /interviews', () => {
     it('should get all interviews for authenticated user', async () => {
+      const { token } = await createUserAndGetToken('get-interviews@example.com');
+      
+      // Create an interview first
+      await request(app)
+        .post('/api/interviews')
+        .set('Authorization', `Bearer ${token}`)
+        .send({
+          transcription: 'Test transcription for get all',
+          summary: 'Test summary for get all'
+        });
+      
       const response = await request(app)
-        .get('/interviews')
-        .set('Authorization', `Bearer ${authToken}`);
+        .get('/api/interviews')
+        .set('Authorization', `Bearer ${token}`);
 
       expect(response.status).toBe(200);
       expect(response.body.results).toBeInstanceOf(Array);
@@ -117,9 +108,11 @@ describe('Wellness Coach Interview API', () => {
     });
 
     it('should support pagination', async () => {
+      const { token } = await createUserAndGetToken('pagination@example.com');
+      
       const response = await request(app)
-        .get('/interviews?limit=1&offset=0')
-        .set('Authorization', `Bearer ${authToken}`);
+        .get('/api/interviews?limit=1&offset=0')
+        .set('Authorization', `Bearer ${token}`);
 
       expect(response.status).toBe(200);
       expect(response.body.results).toBeInstanceOf(Array);
@@ -129,9 +122,22 @@ describe('Wellness Coach Interview API', () => {
 
   describe('GET /interviews/:id', () => {
     it('should get specific interview by id', async () => {
+      const { token } = await createUserAndGetToken('get-specific@example.com');
+      
+      // Create an interview first
+      const createResponse = await request(app)
+        .post('/api/interviews')
+        .set('Authorization', `Bearer ${token}`)
+        .send({
+          transcription: 'Test transcription for get specific',
+          summary: 'Test summary for get specific'
+        });
+      
+      const interviewId = createResponse.body.result.id;
+      
       const response = await request(app)
-        .get(`/interviews/${interviewId}`)
-        .set('Authorization', `Bearer ${authToken}`);
+        .get(`/api/interviews/${interviewId}`)
+        .set('Authorization', `Bearer ${token}`);
 
       expect(response.status).toBe(200);
       expect(response.body.result.id).toBe(interviewId);
@@ -140,10 +146,12 @@ describe('Wellness Coach Interview API', () => {
     });
 
     it('should return 404 for non-existent interview', async () => {
+      const { token } = await createUserAndGetToken('get-404@example.com');
+      
       const fakeId = '00000000-0000-0000-0000-000000000000';
       const response = await request(app)
-        .get(`/interviews/${fakeId}`)
-        .set('Authorization', `Bearer ${authToken}`);
+        .get(`/api/interviews/${fakeId}`)
+        .set('Authorization', `Bearer ${token}`);
 
       expect(response.status).toBe(404);
     });
@@ -151,14 +159,27 @@ describe('Wellness Coach Interview API', () => {
 
   describe('PUT /interviews/:id', () => {
     it('should update interview transcription and summary', async () => {
+      const { token } = await createUserAndGetToken('update-interview@example.com');
+      
+      // Create an interview first
+      const createResponse = await request(app)
+        .post('/api/interviews')
+        .set('Authorization', `Bearer ${token}`)
+        .send({
+          transcription: 'Original transcription',
+          summary: 'Original summary'
+        });
+      
+      const interviewId = createResponse.body.result.id;
+      
       const updatedData = {
         transcription: 'Updated transcription with more details...',
         summary: 'Updated summary with additional insights...'
       };
 
       const response = await request(app)
-        .put(`/interviews/${interviewId}`)
-        .set('Authorization', `Bearer ${authToken}`)
+        .put(`/api/interviews/${interviewId}`)
+        .set('Authorization', `Bearer ${token}`)
         .send(updatedData);
 
       expect(response.status).toBe(200);
@@ -170,22 +191,32 @@ describe('Wellness Coach Interview API', () => {
 
   describe('DELETE /interviews/:id', () => {
     it('should delete interview', async () => {
+      const { token } = await createUserAndGetToken('delete-interview@example.com');
+      
+      // Create an interview first
+      const createResponse = await request(app)
+        .post('/api/interviews')
+        .set('Authorization', `Bearer ${token}`)
+        .send({
+          transcription: 'To be deleted transcription',
+          summary: 'To be deleted summary'
+        });
+      
+      const interviewId = createResponse.body.result.id;
+      
       const response = await request(app)
-        .delete(`/interviews/${interviewId}`)
-        .set('Authorization', `Bearer ${authToken}`);
+        .delete(`/api/interviews/${interviewId}`)
+        .set('Authorization', `Bearer ${token}`);
 
       expect(response.status).toBe(200);
       expect(response.body.message).toBe('Interview result deleted successfully');
 
       // Verify it's actually deleted
       const getResponse = await request(app)
-        .get(`/interviews/${interviewId}`)
-        .set('Authorization', `Bearer ${authToken}`);
+        .get(`/api/interviews/${interviewId}`)
+        .set('Authorization', `Bearer ${token}`);
 
       expect(getResponse.status).toBe(404);
-      
-      // Clear interviewId so cleanup doesn't try to delete it again
-      interviewId = '';
     });
   });
 });
