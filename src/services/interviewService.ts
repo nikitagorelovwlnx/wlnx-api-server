@@ -9,11 +9,11 @@ export class InterviewService {
     this.db = db;
   }
 
-  async createInterviewResult(userId: string, data: CreateInterviewResultRequest): Promise<InterviewResult> {
+  async createInterviewResult(email: string, data: CreateInterviewResultRequest): Promise<InterviewResult> {
     const [result] = await this.db('interview_results')
       .insert({
         id: uuidv4(),
-        user_id: userId,
+        user_id: email,
         transcription: data.transcription,
         summary: data.summary,
       })
@@ -22,26 +22,26 @@ export class InterviewService {
     return result;
   }
 
-  async getInterviewResultsByUserId(userId: string, limit = 50, offset = 0): Promise<InterviewResult[]> {
+  async getInterviewResultsByUserId(email: string, limit = 50, offset = 0): Promise<InterviewResult[]> {
     return await this.db('interview_results')
       .select('*')
-      .where('user_id', userId)
+      .where('user_id', email)
       .orderBy('created_at', 'desc')
       .limit(limit)
       .offset(offset);
   }
 
-  async getInterviewResultById(id: string, userId: string): Promise<InterviewResult | null> {
+  async getInterviewResultById(id: string, email: string): Promise<InterviewResult | null> {
     const result = await this.db('interview_results')
       .select('*')
       .where('id', id)
-      .where('user_id', userId)
+      .where('user_id', email)
       .first();
 
     return result || null;
   }
 
-  async updateInterviewResult(id: string, userId: string, updates: Partial<CreateInterviewResultRequest>): Promise<InterviewResult | null> {
+  async updateInterviewResult(id: string, email: string, updates: Partial<CreateInterviewResultRequest>): Promise<InterviewResult | null> {
     const updateData: any = { updated_at: new Date() };
     
     if (updates.transcription !== undefined) {
@@ -53,17 +53,17 @@ export class InterviewService {
 
     const [result] = await this.db('interview_results')
       .where('id', id)
-      .where('user_id', userId)
+      .where('user_id', email)
       .update(updateData)
       .returning('*');
 
     return result || null;
   }
 
-  async deleteInterviewResult(id: string, userId: string): Promise<boolean> {
+  async deleteInterviewResult(id: string, email: string): Promise<boolean> {
     const result = await this.db('interview_results')
       .where('id', id)
-      .where('user_id', userId)
+      .where('user_id', email)
       .del();
 
     return result > 0;
