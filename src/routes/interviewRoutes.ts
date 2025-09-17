@@ -1,34 +1,31 @@
 import { Router, Response, Request } from 'express';
-import { InterviewService } from '../services/interviewService';
+import { WellnessSessionService } from '../services/wellnessSessionService';
 import db from '../database/knex';
+import { Knex } from 'knex';
 
-const router = Router();
-const interviewService = new InterviewService(db);
+export function createInterviewRoutes(database?: Knex) {
+  const router = Router();
+  const dbInstance = database || db;
+  const wellnessSessionService = new WellnessSessionService(dbInstance);
 
-// Create interview result
+// Create wellness session
 router.post('/', async (req: Request, res: Response) => {
   try {
-    console.log('POST /interviews - Request body:', JSON.stringify(req.body, null, 2));
-    console.log('POST /interviews - Content-Type:', req.headers['content-type']);
-    
     const { email, transcription, summary } = req.body;
 
     if (!email) {
-      console.log('Missing email field');
       return res.status(400).json({ error: 'Email is required' });
     }
 
     if (!transcription) {
-      console.log('Missing transcription field');
       return res.status(400).json({ error: 'Transcription is required' });
     }
 
     if (!summary) {
-      console.log('Missing summary field');
       return res.status(400).json({ error: 'Summary is required' });
     }
 
-    const result = await interviewService.createInterviewResult(email, {
+    const result = await wellnessSessionService.createWellnessSession(email, {
       transcription,
       summary,
     });
@@ -43,17 +40,19 @@ router.post('/', async (req: Request, res: Response) => {
   }
 });
 
-// Get interview results
+// Get wellness sessions (email parameter required)
 router.get('/', async (req: Request, res: Response) => {
   try {
     const email = req.query.email as string;
+    
+    if (!email) {
+      return res.status(400).json({ error: 'Email parameter is required' });
+    }
+    
     const limit = parseInt(req.query.limit as string) || 50;
     const offset = parseInt(req.query.offset as string) || 0;
 
-    // If email is provided, filter by email, otherwise return all interviews
-    const results = email 
-      ? await interviewService.getInterviewResultsByUserId(email, limit, offset)
-      : await interviewService.getAllInterviewResults(limit, offset);
+    const results = await wellnessSessionService.getWellnessSessionsByUserId(email, limit, offset);
       
     res.json({ results });
   } catch (error) {
@@ -61,7 +60,7 @@ router.get('/', async (req: Request, res: Response) => {
   }
 });
 
-// Get specific interview result
+// Get specific wellness session
 router.get('/:id', async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
@@ -71,10 +70,10 @@ router.get('/:id', async (req: Request, res: Response) => {
       return res.status(400).json({ error: 'Email parameter is required' });
     }
     
-    const result = await interviewService.getInterviewResultById(id, email);
+    const result = await wellnessSessionService.getWellnessSessionById(id, email);
 
     if (!result) {
-      return res.status(404).json({ error: 'Interview result not found' });
+      return res.status(404).json({ error: 'Wellness session not found' });
     }
 
     res.json({ result });
@@ -83,7 +82,7 @@ router.get('/:id', async (req: Request, res: Response) => {
   }
 });
 
-// Update interview result
+// Update wellness session
 router.put('/:id', async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
@@ -93,13 +92,13 @@ router.put('/:id', async (req: Request, res: Response) => {
       return res.status(400).json({ error: 'Email is required' });
     }
 
-    const result = await interviewService.updateInterviewResult(id, email, {
+    const result = await wellnessSessionService.updateWellnessSession(id, email, {
       transcription,
       summary,
     });
 
     if (!result) {
-      return res.status(404).json({ error: 'Interview result not found' });
+      return res.status(404).json({ error: 'Wellness session not found' });
     }
 
     res.json({ result });
@@ -108,7 +107,7 @@ router.put('/:id', async (req: Request, res: Response) => {
   }
 });
 
-// Delete interview result
+// Delete wellness session
 router.delete('/:id', async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
@@ -118,10 +117,10 @@ router.delete('/:id', async (req: Request, res: Response) => {
       return res.status(400).json({ error: 'Email is required' });
     }
     
-    const success = await interviewService.deleteInterviewResult(id, email);
+    const success = await wellnessSessionService.deleteWellnessSession(id, email);
 
     if (!success) {
-      return res.status(404).json({ error: 'Interview result not found' });
+      return res.status(404).json({ error: 'Wellness session not found' });
     }
 
     res.json({ message: 'Interview result deleted successfully' });
@@ -130,4 +129,8 @@ router.delete('/:id', async (req: Request, res: Response) => {
   }
 });
 
-export default router;
+  return router;
+}
+
+// Default export for backward compatibility
+export default createInterviewRoutes();

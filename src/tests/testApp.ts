@@ -1,11 +1,8 @@
 import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
-import * as dotenv from 'dotenv';
-import interviewRoutes from './routes/interviewRoutes';
-import userRoutes from './routes/userRoutes';
-
-dotenv.config();
+import { createInterviewRoutes } from '../routes/interviewRoutes';
+import { testDb } from '../database/knex.test';
 
 const app = express();
 
@@ -20,9 +17,8 @@ app.get('/health', (req, res) => {
   res.json({ status: 'OK', timestamp: new Date().toISOString() });
 });
 
-// Routes
-app.use('/api/interviews', interviewRoutes);
-app.use('/api/users', userRoutes);
+// Routes with test database
+app.use('/api/interviews', createInterviewRoutes(testDb));
 
 // Error handling middleware
 app.use((err: Error, req: express.Request, res: express.Response, next: express.NextFunction) => {

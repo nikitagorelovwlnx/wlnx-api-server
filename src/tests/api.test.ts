@@ -1,11 +1,11 @@
 import request from 'supertest';
-import { app } from '../app';
+import { app } from './testApp';
 
 describe('API Integration Tests', () => {
 
 
-  describe('Interview Results with Email Identification', () => {
-    it('should create interview result with email', async () => {
+  describe('Wellness Sessions with Email Identification', () => {
+    it('should create wellness session with email', async () => {
       const testEmail = 'interview@example.com';
       
       const response = await request(app)

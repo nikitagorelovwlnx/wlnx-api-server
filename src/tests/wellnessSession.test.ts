@@ -1,11 +1,10 @@
 import request from 'supertest';
-import { app } from '../app';
-import { db } from '../database/knex';
+import { app } from './testApp';
 
-describe('Wellness Coach Interview API', () => {
+describe('Wellness Session API', () => {
 
   describe('POST /interviews', () => {
-    it('should create a new wellness coach interview with email', async () => {
+    it('should create a new wellness session with email', async () => {
       const interviewData = {
         email: 'testuser@example.com',
         transcription: 'This is a test transcription of a wellness coaching session. Coach: How are you feeling today? Client: I feel stressed about work...',

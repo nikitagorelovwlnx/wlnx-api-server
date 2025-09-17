@@ -5,30 +5,30 @@ const router = express.Router();
 
 interface UserResult {
   email: string;
-  interview_count: string;
-  last_interview: Date;
-  first_interview: Date;
+  session_count: string;
+  last_session: Date;
+  first_session: Date;
 }
 
-// Get all unique users (emails) from interview results
+// Get all unique users (emails) from wellness sessions
 router.get('/', async (req: express.Request, res: express.Response) => {
   try {
-    const users: UserResult[] = await knex('interview_results')
+    const users: UserResult[] = await knex('wellness_sessions')
       .distinct('user_id as email')
       .select(
-        knex.raw('COUNT(*) as interview_count'),
-        knex.raw('MAX(created_at) as last_interview'),
-        knex.raw('MIN(created_at) as first_interview')
+        knex.raw('COUNT(*) as session_count'),
+        knex.raw('MAX(created_at) as last_session'),
+        knex.raw('MIN(created_at) as first_session')
       )
       .groupBy('user_id')
-      .orderBy('last_interview', 'desc');
+      .orderBy('last_session', 'desc');
 
     res.json({ 
       users: users.map((user: UserResult) => ({
         email: user.email,
-        interview_count: parseInt(user.interview_count),
-        last_interview: user.last_interview,
-        first_interview: user.first_interview
+        session_count: parseInt(user.session_count),
+        last_session: user.last_session,
+        first_session: user.first_session
       }))
     });
   } catch (error) {
