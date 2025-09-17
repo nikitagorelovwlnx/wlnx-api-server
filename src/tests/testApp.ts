@@ -2,6 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import { createInterviewRoutes } from '../routes/interviewRoutes';
+import { createUserRoutes } from '../routes/userRoutes';
 import { testDb } from '../database/knex.test';
 
 const app = express();
@@ -19,6 +20,7 @@ app.get('/health', (req, res) => {
 
 // Routes with test database
 app.use('/api/interviews', createInterviewRoutes(testDb));
+app.use('/api/users', createUserRoutes(testDb));
 
 // Error handling middleware
 app.use((err: Error, req: express.Request, res: express.Response, next: express.NextFunction) => {

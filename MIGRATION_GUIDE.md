@@ -44,7 +44,7 @@ npm run migrate
 - No authentication required
 
 ### Current Endpoints
-- `GET /api/users` - User statistics from sessions
+- `GET /api/users` - Get all users with complete session history (one comprehensive call)
 - `POST /api/interviews` - Create wellness session
 - `GET /api/interviews` - Get user sessions (requires email query parameter)
 - `GET /api/interviews/:id` - Get specific session (requires email query parameter)
@@ -57,7 +57,7 @@ npm run migrate
 New comprehensive test infrastructure with **SQLite in-memory database**:
 
 ```bash
-# Run all tests (32 test cases)
+# Run all tests (34 test cases)
 npm test
 
 # Run tests with coverage
@@ -70,7 +70,7 @@ npm run test:watch
 **Test Features:**
 - ✅ No external dependencies (SQLite in-memory)
 - ✅ Fast execution (< 2 seconds)
-- ✅ 32 test cases covering all API endpoints
+- ✅ 34 test cases covering all API endpoints
 - ✅ Isolated test environment
 - ✅ Automatic database cleanup between tests
 
