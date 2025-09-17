@@ -1,15 +1,14 @@
 # WLNX API Server
 
-Lightweight TypeScript backend with PostgreSQL for wellness coach interview management and integrations.
+Lightweight TypeScript backend with PostgreSQL for wellness coaching session storage and management.
 
 ## Features
 
 - ✅ Email-based user identification (no authentication required)
-- ✅ User list retrieval from interview data
-- ✅ Calendar integration information storage
-- ✅ Telegram integration information storage
-- ✅ Wellness coach interview results storage and retrieval
-- ✅ Full test coverage
+- ✅ Wellness coaching session storage with transcriptions and summaries
+- ✅ User session history and statistics
+- ✅ RESTful API for session management (CRUD operations)
+- ✅ Full test coverage with Jest
 - ✅ One-click server startup
 
 ## Technologies
@@ -75,27 +74,18 @@ If you prefer manual installation:
 
 **🔑 Authentication:** All endpoints use email-based identification. No JWT tokens required.
 
-### Users
-- `GET /api/users` - Get all users (email addresses with interview statistics)
+### Users Statistics
+- `GET /api/users` - Get all users (email addresses with wellness session statistics)
 
-### Calendar Integration
-- `POST /api/calendar` - Create calendar integration
-- `GET /api/calendar` - Get user integrations
-- `PUT /api/calendar/:id` - Update integration
-- `DELETE /api/calendar/:id` - Delete integration
+### Wellness Sessions
+- `POST /api/interviews` - Create wellness session (requires email, transcription, summary)
+- `GET /api/interviews` - Get user sessions (requires email query parameter)
+- `GET /api/interviews/:id` - Get specific session (requires email query parameter)
+- `PUT /api/interviews/:id` - Update session (requires email in body)
+- `DELETE /api/interviews/:id` - Delete session (requires email in body)
 
-### Telegram Integration
-- `POST /api/telegram` - Create Telegram integration
-- `GET /api/telegram` - Get user integrations
-- `PUT /api/telegram/:id` - Update integration
-- `DELETE /api/telegram/:id` - Delete integration
-
-### Wellness Coach Interviews
-- `POST /api/interviews` - Save interview result (requires email, transcription, summary)
-- `GET /api/interviews` - Get all interviews (optional email parameter for filtering)
-- `GET /api/interviews/:id` - Get specific interview (requires email query parameter)
-- `PUT /api/interviews/:id` - Update interview (requires email in body)
-- `DELETE /api/interviews/:id` - Delete interview (requires email in body)
+### Health Check
+- `GET /health` - Server health status
 
 ## Usage Examples
 
@@ -110,15 +100,15 @@ Response:
   "users": [
     {
       "email": "client@example.com",
-      "interview_count": 5,
-      "last_interview": "2025-09-17T00:50:26.537Z",
-      "first_interview": "2025-09-16T00:30:15.123Z"
+      "session_count": 5,
+      "last_session": "2025-09-17T00:50:26.537Z",
+      "first_session": "2025-09-16T00:30:15.123Z"
     }
   ]
 }
 ```
 
-### Create Wellness Coach Interview
+### Create Wellness Session
 ```bash
 curl -X POST http://localhost:3000/api/interviews \
   -H "Content-Type: application/json" \
@@ -129,19 +119,19 @@ curl -X POST http://localhost:3000/api/interviews \
   }'
 ```
 
-### Get All Interviews
-```bash
-curl -X GET "http://localhost:3000/api/interviews"
-```
-
-### Get User Interviews
+### Get User Sessions
 ```bash
 curl -X GET "http://localhost:3000/api/interviews?email=client@example.com"
 ```
 
-### Update Interview
+### Get Specific Session
 ```bash
-curl -X PUT http://localhost:3000/api/interviews/INTERVIEW_ID \
+curl -X GET "http://localhost:3000/api/interviews/SESSION_ID?email=client@example.com"
+```
+
+### Update Session
+```bash
+curl -X PUT http://localhost:3000/api/interviews/SESSION_ID \
   -H "Content-Type: application/json" \
   -d '{
     "email": "client@example.com",
@@ -167,26 +157,19 @@ src/
 │   ├── migrations/     # DB migrations
 │   ├── knex.ts        # Knex configuration
 │   └── connection.ts  # DB connection
-├── middleware/
-│   └── auth.ts        # Authentication middleware
 ├── routes/
-│   ├── userRoutes.ts      # User routes
-│   ├── calendarRoutes.ts  # Calendar routes
-│   ├── telegramRoutes.ts  # Telegram routes
-│   └── interviewRoutes.ts # Interview routes
+│   ├── userRoutes.ts      # User statistics routes
+│   └── interviewRoutes.ts # Wellness session routes
 ├── services/
-│   ├── userService.ts     # User service
-│   ├── calendarService.ts # Calendar service
-│   ├── telegramService.ts # Telegram service
-│   └── interviewService.ts # Interview service
+│   └── wellnessSessionService.ts # Wellness session service
 ├── tests/
-│   ├── setup.ts           # Test setup
-│   ├── userService.test.ts # User service tests
-│   └── api.test.ts        # API integration tests
-├── types/
-│   └── index.ts       # TypeScript types
-├── utils/
-│   └── auth.ts        # Authentication utilities
+│   ├── setup.ts                    # Test setup
+│   ├── testApp.ts                  # Test application with SQLite
+│   ├── wellnessSession.test.ts     # Wellness session API tests
+│   ├── wellnessSessionService.test.ts # Service tests
+│   └── api.test.ts                 # API integration tests
+├── types.ts           # TypeScript types
+├── app.ts             # Express app configuration
 └── index.ts           # Main server file
 ```
 
@@ -244,6 +227,8 @@ Production features:
 
 ## Testing
 
+The project uses **Jest** with **SQLite in-memory database** for fast, isolated testing.
+
 Run all tests:
 ```bash
 npm test
@@ -254,10 +239,22 @@ Run tests in watch mode:
 npm run test:watch
 ```
 
+Run tests with coverage:
+```bash
+npm run test:coverage
+```
+
 Run tests with Docker:
 ```bash
 ./scripts/docker-test.sh
 ```
+
+**Test Features:**
+- ✅ No external dependencies (uses SQLite in-memory)
+- ✅ Fast execution (< 2 seconds)
+- ✅ 32 test cases covering all API endpoints
+- ✅ Isolated test environment
+- ✅ Automatic database cleanup between tests
 
 ## License
 

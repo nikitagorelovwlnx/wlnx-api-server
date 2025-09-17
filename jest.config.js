@@ -9,7 +9,8 @@ module.exports = {
   testPathIgnorePatterns: [
     '/node_modules/',
     '/src/database/seeds/',
-    '/src/database/migrations/'
+    '/src/database/migrations/',
+    '/src/database/knex.test.ts'
   ],
   transform: {
     '^.+\\.ts$': 'ts-jest',

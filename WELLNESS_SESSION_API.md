@@ -1,12 +1,12 @@
-# Wellness Coach Interview API
+# Wellness Session API
 
-This API handles wellness coach interviews that are pushed from external services. Each interview contains a full transcription of the conversation and a summary generated externally.
+This API handles wellness coaching sessions that are pushed from external services. Each session contains a full transcription of the conversation and a summary generated externally.
 
 **🔑 Authentication:** This API uses **email-based identification** instead of traditional authentication. No JWT tokens required.
 
 ## Data Model
 
-### InterviewResult
+### WellnessSession
 ```typescript
 {
   id: string;              // UUID
@@ -25,7 +25,7 @@ This API handles wellness coach interviews that are pushed from external service
 All endpoints use email addresses as user identifiers. No authentication headers required.
 
 ### POST /interviews
-Create a new wellness coach interview result.
+Create a new wellness coaching session.
 
 **Request Body:**
 ```json
@@ -272,12 +272,15 @@ External wellness coaching services should:
 - Migration `006_change_user_id_to_email.ts`: Changed user identification
   - Modified: `user_id` column from UUID to VARCHAR(255) to store email addresses
   - Removed: Foreign key constraint to users table
-  - Maintains: `id`, `user_id`, `created_at`, `updated_at`
-  - Indexes: `user_id`, `created_at`
+- Migration `007_drop_integration_tables.ts`: Removed integration functionality
+  - Dropped: `calendar_integrations`, `telegram_integrations` tables
+- Migration `008_rename_to_wellness_sessions.ts`: Renamed for clarity
+  - Renamed: `interview_results` → `wellness_sessions`
+  - Updated indexes accordingly
 
 **Final Table Structure:**
 ```sql
-CREATE TABLE interview_results (
+CREATE TABLE wellness_sessions (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   user_id VARCHAR(255) NOT NULL, -- Email address
   transcription TEXT NOT NULL,
@@ -286,8 +289,8 @@ CREATE TABLE interview_results (
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE INDEX idx_interview_results_user_id ON interview_results(user_id);
-CREATE INDEX idx_interview_results_created_at ON interview_results(created_at);
+CREATE INDEX idx_wellness_sessions_user_id ON wellness_sessions(user_id);
+CREATE INDEX idx_wellness_sessions_created_at ON wellness_sessions(created_at);
 ```
 
 ## Environment Setup
