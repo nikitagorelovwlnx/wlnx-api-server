@@ -8,17 +8,23 @@ const interviewService = new InterviewService(db);
 // Create interview result
 router.post('/', async (req: Request, res: Response) => {
   try {
+    console.log('POST /interviews - Request body:', JSON.stringify(req.body, null, 2));
+    console.log('POST /interviews - Content-Type:', req.headers['content-type']);
+    
     const { email, transcription, summary } = req.body;
 
     if (!email) {
+      console.log('Missing email field');
       return res.status(400).json({ error: 'Email is required' });
     }
 
     if (!transcription) {
+      console.log('Missing transcription field');
       return res.status(400).json({ error: 'Transcription is required' });
     }
 
     if (!summary) {
+      console.log('Missing summary field');
       return res.status(400).json({ error: 'Summary is required' });
     }
 
@@ -44,11 +50,11 @@ router.get('/', async (req: Request, res: Response) => {
     const limit = parseInt(req.query.limit as string) || 50;
     const offset = parseInt(req.query.offset as string) || 0;
 
-    if (!email) {
-      return res.status(400).json({ error: 'Email parameter is required' });
-    }
-
-    const results = await interviewService.getInterviewResultsByUserId(email, limit, offset);
+    // If email is provided, filter by email, otherwise return all interviews
+    const results = email 
+      ? await interviewService.getInterviewResultsByUserId(email, limit, offset)
+      : await interviewService.getAllInterviewResults(limit, offset);
+      
     res.json({ results });
   } catch (error) {
     res.status(500).json({ error: 'Internal server error' });

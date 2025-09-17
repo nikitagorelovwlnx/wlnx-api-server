@@ -31,6 +31,14 @@ export class InterviewService {
       .offset(offset);
   }
 
+  async getAllInterviewResults(limit = 50, offset = 0): Promise<InterviewResult[]> {
+    return await this.db('interview_results')
+      .select('*')
+      .orderBy('created_at', 'desc')
+      .limit(limit)
+      .offset(offset);
+  }
+
   async getInterviewResultById(id: string, email: string): Promise<InterviewResult | null> {
     const result = await this.db('interview_results')
       .select('*')

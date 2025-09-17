@@ -92,7 +92,7 @@ If you prefer manual installation:
 
 ### Wellness Coach Interviews
 - `POST /api/interviews` - Save interview result (requires email, transcription, summary)
-- `GET /api/interviews` - Get user interviews (requires email query parameter)
+- `GET /api/interviews` - Get all interviews (optional email parameter for filtering)
 - `GET /api/interviews/:id` - Get specific interview (requires email query parameter)
 - `PUT /api/interviews/:id` - Update interview (requires email in body)
 - `DELETE /api/interviews/:id` - Delete interview (requires email in body)
@@ -127,6 +127,11 @@ curl -X POST http://localhost:3000/api/interviews \
     "transcription": "Coach: How was your week? Client: It was stressful with work deadlines. Coach: Let'\''s explore some coping strategies...",
     "summary": "Client reported work stress. Discussed time management and mindfulness techniques. Recommended daily meditation practice."
   }'
+```
+
+### Get All Interviews
+```bash
+curl -X GET "http://localhost:3000/api/interviews"
 ```
 
 ### Get User Interviews

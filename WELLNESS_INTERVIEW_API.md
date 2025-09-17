@@ -67,14 +67,19 @@ curl -X POST http://localhost:3000/api/interviews \
 - 500: Internal server error
 
 ### GET /interviews
-Get all interview results for a specific user by email.
+Get all interview results from the system. Can optionally filter by user email.
 
 **Query Parameters:**
-- `email` (required): Email address of the user
+- `email` (optional): Email address to filter by specific user
 - `limit` (optional): Number of results to return (default: 50)
 - `offset` (optional): Number of results to skip (default: 0)
 
-**Example cURL:**
+**Get all interviews:**
+```bash
+curl -X GET "http://localhost:3000/api/interviews"
+```
+
+**Filter by specific user:**
 ```bash
 curl -X GET "http://localhost:3000/api/interviews?email=user@example.com&limit=10&offset=0"
 ```
@@ -97,7 +102,6 @@ curl -X GET "http://localhost:3000/api/interviews?email=user@example.com&limit=1
 
 **Status Codes:**
 - 200: Success
-- 400: Missing email parameter
 - 500: Internal server error
 
 ### GET /interviews/:id
@@ -217,7 +221,12 @@ curl -X POST http://localhost:3000/api/interviews \
   }'
 ```
 
-### Retrieving All Interviews for a User
+### Retrieving All Interviews
+```bash
+curl -X GET "http://localhost:3000/api/interviews"
+```
+
+### Retrieving Interviews for Specific User
 ```bash
 curl -X GET "http://localhost:3000/api/interviews?email=client@example.com"
 ```
