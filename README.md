@@ -24,10 +24,32 @@ Lightweight TypeScript backend with PostgreSQL for wellness coaching session sto
 ### Prerequisites
 
 - Node.js (v16+)
-- PostgreSQL
+- Docker and Docker Compose (recommended)
+- OR PostgreSQL (if running without Docker)
 - npm or yarn
 
 ### Installation and Setup
+
+#### Option 1: Docker (Recommended)
+
+1. **Clone repository and navigate to directory:**
+   ```bash
+   cd wlnx-api-server
+   ```
+
+2. **Start development environment with Docker:**
+   ```bash
+   ./scripts/docker-dev.sh
+   ```
+
+   This script automatically:
+   - Starts PostgreSQL database in Docker
+   - Installs dependencies
+   - Runs database migrations
+   - Seeds development data
+   - Starts development server at http://localhost:3000
+
+#### Option 2: Manual Setup
 
 1. **Clone repository and navigate to directory:**
    ```bash
@@ -45,9 +67,9 @@ Lightweight TypeScript backend with PostgreSQL for wellness coaching session sto
    - Runs database migrations
    - Starts development server
 
-### Manual Installation
+#### Option 3: Manual Installation (PostgreSQL required)
 
-If you prefer manual installation:
+If you have PostgreSQL installed locally:
 
 1. **Install dependencies:**
    ```bash
@@ -57,15 +79,25 @@ If you prefer manual installation:
 2. **Configure environment variables:**
    ```bash
    cp .env.example .env
-   # Edit .env file with your DB settings
+   # Edit .env file with your PostgreSQL settings
    ```
 
-3. **Run migrations:**
+3. **Ensure PostgreSQL is running and create database:**
+   ```bash
+   createdb wlnx_api_dev  # or use your preferred method
+   ```
+
+4. **Run migrations:**
    ```bash
    npm run migrate
    ```
 
-4. **Start server:**
+5. **Seed development data (optional):**
+   ```bash
+   npm run seed:dev
+   ```
+
+6. **Start server:**
    ```bash
    npm run dev
    ```
