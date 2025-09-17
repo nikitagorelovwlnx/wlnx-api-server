@@ -1,40 +1,81 @@
 import express from 'express';
 import knex from '../database/knex';
+import { Knex } from 'knex';
 
-const router = express.Router();
+export function createUserRoutes(database?: Knex) {
+  const router = express.Router();
+  const dbInstance = database || knex;
 
-interface UserResult {
-  email: string;
-  session_count: string;
-  last_session: Date;
-  first_session: Date;
+interface WellnessSession {
+  id: string;
+  transcription: string;
+  summary: string;
+  analysis_results?: any;
+  created_at: Date;
+  updated_at: Date;
 }
 
-// Get all unique users (emails) from wellness sessions
+interface UserWithSessions {
+  email: string;
+  session_count: number;
+  last_session: Date;
+  first_session: Date;
+  sessions: WellnessSession[];
+}
+
+// Get all users with their complete session history
 router.get('/', async (req: express.Request, res: express.Response) => {
   try {
-    const users: UserResult[] = await knex('wellness_sessions')
-      .distinct('user_id as email')
-      .select(
-        knex.raw('COUNT(*) as session_count'),
-        knex.raw('MAX(created_at) as last_session'),
-        knex.raw('MIN(created_at) as first_session')
-      )
-      .groupBy('user_id')
-      .orderBy('last_session', 'desc');
+    // Get all sessions grouped by user
+    const allSessions = await dbInstance('wellness_sessions')
+      .select('*')
+      .orderBy('user_id')
+      .orderBy('created_at', 'desc');
 
-    res.json({ 
-      users: users.map((user: UserResult) => ({
-        email: user.email,
-        session_count: parseInt(user.session_count),
-        last_session: user.last_session,
-        first_session: user.first_session
-      }))
+    // Group sessions by user
+    const userMap = new Map<string, WellnessSession[]>();
+    
+    allSessions.forEach(session => {
+      const email = session.user_id;
+      if (!userMap.has(email)) {
+        userMap.set(email, []);
+      }
+      userMap.get(email)!.push({
+        id: session.id,
+        transcription: session.transcription,
+        summary: session.summary,
+        analysis_results: session.analysis_results,
+        created_at: session.created_at,
+        updated_at: session.updated_at
+      });
     });
+
+    // Build user objects with complete session data
+    const users: UserWithSessions[] = [];
+    
+    for (const [email, sessions] of userMap) {
+      const sessionDates = sessions.map(s => new Date(s.created_at));
+      users.push({
+        email,
+        session_count: sessions.length,
+        last_session: new Date(Math.max(...sessionDates.map(d => d.getTime()))),
+        first_session: new Date(Math.min(...sessionDates.map(d => d.getTime()))),
+        sessions: sessions
+      });
+    }
+
+    // Sort users by last session date (most recent first)
+    users.sort((a, b) => b.last_session.getTime() - a.last_session.getTime());
+
+    res.json({ users });
   } catch (error) {
-    console.error('Error fetching users:', error);
+    console.error('Error fetching users with sessions:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 });
 
-export default router;
+  return router;
+}
+
+// Default export for backward compatibility
+export default createUserRoutes();

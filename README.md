@@ -74,8 +74,8 @@ If you prefer manual installation:
 
 **🔑 Authentication:** All endpoints use email-based identification. No JWT tokens required.
 
-### Users Statistics
-- `GET /api/users` - Get all users (email addresses with wellness session statistics)
+### Users with Complete Session History
+- `GET /api/users` - Get all users with their complete session history (includes all transcriptions and summaries)
 
 ### Wellness Sessions
 - `POST /api/interviews` - Create wellness session (requires email, transcription, summary)
@@ -89,7 +89,7 @@ If you prefer manual installation:
 
 ## Usage Examples
 
-### Get All Users
+### Get All Users with Complete Session History
 ```bash
 curl -X GET http://localhost:3000/api/users
 ```
@@ -100,13 +100,37 @@ Response:
   "users": [
     {
       "email": "client@example.com",
-      "session_count": 5,
+      "session_count": 3,
       "last_session": "2025-09-17T00:50:26.537Z",
-      "first_session": "2025-09-16T00:30:15.123Z"
+      "first_session": "2025-09-16T00:30:15.123Z",
+      "sessions": [
+        {
+          "id": "550e8400-e29b-41d4-a716-446655440000",
+          "transcription": "Coach: How was your week? Client: It was stressful...",
+          "summary": "Client discussed work stress. Recommended mindfulness techniques.",
+          "analysis_results": null,
+          "created_at": "2025-09-17T00:50:26.537Z",
+          "updated_at": "2025-09-17T00:50:26.537Z"
+        },
+        {
+          "id": "6ba7b810-9dad-11d1-80b4-00c04fd430c8",
+          "transcription": "Coach: How are you feeling today? Client: Much better...",
+          "summary": "Client showed improvement in mood and energy levels.",
+          "analysis_results": null,
+          "created_at": "2025-09-16T18:30:15.123Z",
+          "updated_at": "2025-09-16T18:30:15.123Z"
+        }
+      ]
     }
   ]
 }
 ```
+
+**Benefits:**
+- ✅ **One API call** gets all users and their complete session history
+- ✅ **Full data access** - transcriptions, summaries, timestamps, IDs
+- ✅ **Client flexibility** - frontend can filter, search, display as needed
+- ✅ **Efficient** - optimized single query with proper sorting
 
 ### Create Wellness Session
 ```bash
@@ -252,7 +276,7 @@ Run tests with Docker:
 **Test Features:**
 - ✅ No external dependencies (uses SQLite in-memory)
 - ✅ Fast execution (< 2 seconds)
-- ✅ 32 test cases covering all API endpoints
+- ✅ 34 test cases covering all API endpoints
 - ✅ Isolated test environment
 - ✅ Automatic database cleanup between tests
 

@@ -165,4 +165,80 @@ describe('API Integration Tests', () => {
       expect(response.status).toBe(404);
     });
   });
+
+  describe('Users with Complete Session History', () => {
+    it('should return all users with their complete session history', async () => {
+      // Create sessions for multiple users
+      const user1Email = 'user1@example.com';
+      const user2Email = 'user2@example.com';
+
+      // Create first session for user1
+      await request(app)
+        .post('/api/interviews')
+        .send({
+          email: user1Email,
+          transcription: 'User1 first session transcription',
+          summary: 'User1 first session summary',
+        });
+
+      // Create second session for user1
+      await request(app)
+        .post('/api/interviews')
+        .send({
+          email: user1Email,
+          transcription: 'User1 second session transcription',
+          summary: 'User1 second session summary',
+        });
+
+      // Create session for user2
+      await request(app)
+        .post('/api/interviews')
+        .send({
+          email: user2Email,
+          transcription: 'User2 session transcription',
+          summary: 'User2 session summary',
+        });
+
+      // Get all users with complete session history
+      const response = await request(app)
+        .get('/api/users');
+
+      expect(response.status).toBe(200);
+      expect(response.body.users).toBeInstanceOf(Array);
+      expect(response.body.users.length).toBe(2);
+
+      // Check user1 data
+      const user1 = response.body.users.find((u: any) => u.email === user1Email);
+      expect(user1).toBeTruthy();
+      expect(user1.session_count).toBe(2);
+      expect(user1.sessions).toBeInstanceOf(Array);
+      expect(user1.sessions.length).toBe(2);
+      expect(user1.sessions[0]).toHaveProperty('id');
+      expect(user1.sessions[0]).toHaveProperty('transcription');
+      expect(user1.sessions[0]).toHaveProperty('summary');
+      expect(user1.sessions[0]).toHaveProperty('created_at');
+
+      // Check user2 data
+      const user2 = response.body.users.find((u: any) => u.email === user2Email);
+      expect(user2).toBeTruthy();
+      expect(user2.session_count).toBe(1);
+      expect(user2.sessions).toBeInstanceOf(Array);
+      expect(user2.sessions.length).toBe(1);
+
+      // Verify session data integrity
+      expect(user1.sessions[0].transcription).toContain('User1');
+      expect(user1.sessions[0].summary).toContain('User1');
+      expect(user2.sessions[0].transcription).toBe('User2 session transcription');
+      expect(user2.sessions[0].summary).toBe('User2 session summary');
+    });
+
+    it('should return empty array when no sessions exist', async () => {
+      const response = await request(app)
+        .get('/api/users');
+
+      expect(response.status).toBe(200);
+      expect(response.body.users).toBeInstanceOf(Array);
+      expect(response.body.users.length).toBe(0);
+    });
+  });
 });
