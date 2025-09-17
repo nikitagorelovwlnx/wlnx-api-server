@@ -1,14 +1,14 @@
 # WLNX API Server
 
-Lightweight TypeScript backend with PostgreSQL for user management, integrations and interview results.
+Lightweight TypeScript backend with PostgreSQL for wellness coach interview management and integrations.
 
 ## Features
 
-- ✅ User registration and authentication
-- ✅ User data retrieval
+- ✅ Email-based user identification (no authentication required)
+- ✅ User list retrieval from interview data
 - ✅ Calendar integration information storage
 - ✅ Telegram integration information storage
-- ✅ Interview results storage and retrieval
+- ✅ Wellness coach interview results storage and retrieval
 - ✅ Full test coverage
 - ✅ One-click server startup
 
@@ -18,8 +18,6 @@ Lightweight TypeScript backend with PostgreSQL for user management, integrations
 - **Express.js** - web framework
 - **Knex.js** - SQL query builder
 - **PostgreSQL** - database
-- **JWT** - authentication
-- **bcrypt** - password hashing
 - **Jest** - testing
 
 ## Quick Start
@@ -75,11 +73,10 @@ If you prefer manual installation:
 
 ## API Endpoints
 
+**🔑 Authentication:** All endpoints use email-based identification. No JWT tokens required.
+
 ### Users
-- `POST /api/users/register` - Register user
-- `POST /api/users/login` - Login user
-- `GET /api/users/me` - Get current user data
-- `PUT /api/users/me` - Update user data
+- `GET /api/users` - Get all users (email addresses with interview statistics)
 
 ### Calendar Integration
 - `POST /api/calendar` - Create calendar integration
@@ -93,40 +90,58 @@ If you prefer manual installation:
 - `PUT /api/telegram/:id` - Update integration
 - `DELETE /api/telegram/:id` - Delete integration
 
-### Interview Results
-- `POST /api/interviews` - Save interview result
-- `GET /api/interviews` - Get user results
-- `GET /api/interviews/:id` - Get specific result
-- `PUT /api/interviews/:id` - Update result
-- `DELETE /api/interviews/:id` - Delete result
+### Wellness Coach Interviews
+- `POST /api/interviews` - Save interview result (requires email, transcription, summary)
+- `GET /api/interviews` - Get user interviews (requires email query parameter)
+- `GET /api/interviews/:id` - Get specific interview (requires email query parameter)
+- `PUT /api/interviews/:id` - Update interview (requires email in body)
+- `DELETE /api/interviews/:id` - Delete interview (requires email in body)
 
 ## Usage Examples
 
-### User Registration
+### Get All Users
 ```bash
-curl -X POST http://localhost:3000/api/users/register \
-  -H "Content-Type: application/json" \
-  -d '{
-    "email": "user@example.com",
-    "password": "password123",
-    "first_name": "John",
-    "last_name": "Doe"
-  }'
+curl -X GET http://localhost:3000/api/users
 ```
 
-### Save Interview Result
+Response:
+```json
+{
+  "users": [
+    {
+      "email": "client@example.com",
+      "interview_count": 5,
+      "last_interview": "2025-09-17T00:50:26.537Z",
+      "first_interview": "2025-09-16T00:30:15.123Z"
+    }
+  ]
+}
+```
+
+### Create Wellness Coach Interview
 ```bash
 curl -X POST http://localhost:3000/api/interviews \
   -H "Content-Type: application/json" \
-  -H "Authorization: Bearer YOUR_JWT_TOKEN" \
   -d '{
-    "title": "Technical Interview",
-    "content": "Interview result in text format",
-    "metadata": {
-      "score": 85,
-      "duration": 45,
-      "interviewer": "Anna Smith"
-    }
+    "email": "client@example.com",
+    "transcription": "Coach: How was your week? Client: It was stressful with work deadlines. Coach: Let'\''s explore some coping strategies...",
+    "summary": "Client reported work stress. Discussed time management and mindfulness techniques. Recommended daily meditation practice."
+  }'
+```
+
+### Get User Interviews
+```bash
+curl -X GET "http://localhost:3000/api/interviews?email=client@example.com"
+```
+
+### Update Interview
+```bash
+curl -X PUT http://localhost:3000/api/interviews/INTERVIEW_ID \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "client@example.com",
+    "transcription": "Updated transcript...",
+    "summary": "Updated summary..."
   }'
 ```
 
@@ -182,10 +197,6 @@ DB_PORT=5432
 DB_NAME=wlnx_api
 DB_USER=postgres
 DB_PASSWORD=password
-
-# JWT
-JWT_SECRET=your-super-secret-jwt-key
-JWT_EXPIRES_IN=7d
 
 # Test Database
 TEST_DB_NAME=wlnx_api_test

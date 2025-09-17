@@ -5,6 +5,7 @@ import * as dotenv from 'dotenv';
 import calendarRoutes from './routes/calendarRoutes';
 import telegramRoutes from './routes/telegramRoutes';
 import interviewRoutes from './routes/interviewRoutes';
+import userRoutes from './routes/userRoutes';
 
 dotenv.config();
 
@@ -25,6 +26,7 @@ app.get('/health', (req, res) => {
 app.use('/api/calendar', calendarRoutes);
 app.use('/api/telegram', telegramRoutes);
 app.use('/api/interviews', interviewRoutes);
+app.use('/api/users', userRoutes);
 
 // Error handling middleware
 app.use((err: Error, req: express.Request, res: express.Response, next: express.NextFunction) => {
