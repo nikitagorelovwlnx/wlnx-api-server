@@ -312,6 +312,61 @@ Run tests with Docker:
 - ✅ Isolated test environment
 - ✅ Automatic database cleanup between tests
 
+## Troubleshooting
+
+### Common API Errors
+
+**404 Not Found Error:**
+- ❌ **Wrong URL**: Ensure you're using `/api/interviews` (plural), not `/api/interview`
+- ❌ **Wrong endpoint**: Check available endpoints in this documentation
+- ✅ **Correct POST endpoint**: `POST /api/interviews`
+
+**Database Connection Issues:**
+```bash
+# Check if PostgreSQL container is running
+docker ps
+
+# Restart PostgreSQL if needed
+docker-compose -f docker-compose.dev.yml up postgres-dev -d
+
+# Check database connection
+curl http://localhost:3000/health
+```
+
+**Server Debugging:**
+The server includes request logging middleware. Check server logs to see:
+- Incoming request URLs and methods
+- Request body contents
+- Error details
+
+Example log output:
+```
+2025-09-18T12:29:30.665Z - POST /api/interviews
+Body: {
+  "email": "user@example.com",
+  "transcription": "...",
+  "summary": "..."
+}
+```
+
+### Database Management
+
+**Clear all data:**
+```bash
+# Option 1: Using Docker
+docker exec wlnx-api-server-postgres-dev-1 psql -U postgres -d wlnx_api_dev -c "DELETE FROM wellness_sessions;"
+
+# Option 2: Reload test data
+npm run seed:run --specific=test.ts
+```
+
+**Reset database completely:**
+```bash
+npm run migrate:rollback --all
+npm run migrate
+npm run seed:dev
+```
+
 ## License
 
 MIT
