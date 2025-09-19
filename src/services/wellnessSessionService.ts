@@ -17,6 +17,7 @@ export class WellnessSessionService {
       user_id: email,
       transcription: data.transcription,
       summary: data.summary,
+      wellness_data: data.wellness_data || null,
       created_at: now,
       updated_at: now,
     };
@@ -67,6 +68,9 @@ export class WellnessSessionService {
     }
     if (updates.summary !== undefined) {
       updateData.summary = updates.summary;
+    }
+    if (updates.wellness_data !== undefined) {
+      updateData.wellness_data = updates.wellness_data;
     }
 
     const updatedRows = await this.db('wellness_sessions')

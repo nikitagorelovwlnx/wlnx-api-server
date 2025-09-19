@@ -25,6 +25,7 @@ export async function setupTestDb() {
       table.text('transcription').notNullable();
       table.text('summary').notNullable();
       table.json('analysis_results');
+      table.json('wellness_data'); // Added wellness_data field
       table.datetime('created_at').defaultTo(testDb.fn.now());
       table.datetime('updated_at').defaultTo(testDb.fn.now());
     });

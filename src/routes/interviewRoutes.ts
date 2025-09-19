@@ -11,7 +11,7 @@ export function createInterviewRoutes(database?: Knex) {
 // Create wellness session
 router.post('/', async (req: Request, res: Response) => {
   try {
-    const { email, transcription, summary } = req.body;
+    const { email, transcription, summary, wellness_data } = req.body;
 
     if (!email) {
       return res.status(400).json({ error: 'Email is required' });
@@ -28,6 +28,7 @@ router.post('/', async (req: Request, res: Response) => {
     const result = await wellnessSessionService.createWellnessSession(email, {
       transcription,
       summary,
+      wellness_data,
     });
 
     res.status(201).json({ result });
@@ -86,7 +87,7 @@ router.get('/:id', async (req: Request, res: Response) => {
 router.put('/:id', async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
-    const { email, transcription, summary } = req.body;
+    const { email, transcription, summary, wellness_data } = req.body;
 
     if (!email) {
       return res.status(400).json({ error: 'Email is required' });
@@ -95,6 +96,7 @@ router.put('/:id', async (req: Request, res: Response) => {
     const result = await wellnessSessionService.updateWellnessSession(id, email, {
       transcription,
       summary,
+      wellness_data,
     });
 
     if (!result) {
