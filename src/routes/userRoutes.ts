@@ -11,6 +11,7 @@ interface WellnessSession {
   transcription: string;
   summary: string;
   analysis_results?: any;
+  wellness_data?: any;
   created_at: Date;
   updated_at: Date;
 }
@@ -45,6 +46,7 @@ router.get('/', async (req: express.Request, res: express.Response) => {
         transcription: session.transcription,
         summary: session.summary,
         analysis_results: session.analysis_results,
+        wellness_data: session.wellness_data,
         created_at: session.created_at,
         updated_at: session.updated_at
       });

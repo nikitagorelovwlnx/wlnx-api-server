@@ -110,10 +110,10 @@ If you have PostgreSQL installed locally:
 - `GET /api/users` - Get all users with their complete session history (includes all transcriptions and summaries)
 
 ### Wellness Sessions
-- `POST /api/interviews` - Create wellness session (requires email, transcription, summary)
+- `POST /api/interviews` - Create wellness session (requires email, transcription, summary; optional wellness_data JSON)
 - `GET /api/interviews` - Get user sessions (requires email query parameter)
 - `GET /api/interviews/:id` - Get specific session (requires email query parameter)
-- `PUT /api/interviews/:id` - Update session (requires email in body)
+- `PUT /api/interviews/:id` - Update session (requires email in body; optional wellness_data JSON)
 - `DELETE /api/interviews/:id` - Delete session (requires email in body)
 
 ### Health Check
@@ -141,6 +141,13 @@ Response:
           "transcription": "Coach: How was your week? Client: It was stressful...",
           "summary": "Client discussed work stress. Recommended mindfulness techniques.",
           "analysis_results": null,
+          "wellness_data": {
+            "age": 33,
+            "weight": 70,
+            "stress_level": 7,
+            "sleep_hours": 6,
+            "goals": ["stress_management", "better_sleep"]
+          },
           "created_at": "2025-09-17T00:50:26.537Z",
           "updated_at": "2025-09-17T00:50:26.537Z"
         },
@@ -171,7 +178,16 @@ curl -X POST http://localhost:3000/api/interviews \
   -d '{
     "email": "client@example.com",
     "transcription": "Coach: How was your week? Client: It was stressful with work deadlines. Coach: Let'\''s explore some coping strategies...",
-    "summary": "Client reported work stress. Discussed time management and mindfulness techniques. Recommended daily meditation practice."
+    "summary": "Client reported work stress. Discussed time management and mindfulness techniques. Recommended daily meditation practice.",
+    "wellness_data": {
+      "age": 33,
+      "weight": 70,
+      "height": 175,
+      "stress_level": 7,
+      "sleep_hours": 6,
+      "activity_level": "moderate",
+      "goals": ["stress_management", "better_sleep"]
+    }
   }'
 ```
 
@@ -192,7 +208,16 @@ curl -X PUT http://localhost:3000/api/interviews/SESSION_ID \
   -d '{
     "email": "client@example.com",
     "transcription": "Updated transcript...",
-    "summary": "Updated summary..."
+    "summary": "Updated summary...",
+    "wellness_data": {
+      "age": 33,
+      "weight": 70,
+      "height": 175,
+      "stress_level": 5,
+      "sleep_hours": 8,
+      "activity_level": "high",
+      "goals": ["stress_management", "better_sleep", "weight_maintenance"]
+    }
   }'
 ```
 
