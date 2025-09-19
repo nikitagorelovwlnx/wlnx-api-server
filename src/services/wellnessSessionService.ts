@@ -1,5 +1,5 @@
 import { Knex } from 'knex';
-import { WellnessSession, CreateWellnessSessionRequest } from '../types';
+import { WellnessSession, CreateWellnessSessionRequest } from '../types.js';
 import { v4 as uuidv4 } from 'uuid';
 
 export class WellnessSessionService {
@@ -12,42 +12,83 @@ export class WellnessSessionService {
   async createWellnessSession(email: string, data: CreateWellnessSessionRequest): Promise<WellnessSession> {
     const id = uuidv4();
     const now = new Date().toISOString();
+    
+    // Properly serialize wellness_data for SQLite
+    let serializedWellnessData = null;
+    if (data.wellness_data !== undefined && data.wellness_data !== null) {
+      serializedWellnessData = JSON.stringify(data.wellness_data);
+    }
+    
     const sessionData = {
       id,
       user_id: email,
       transcription: data.transcription,
       summary: data.summary,
-      wellness_data: data.wellness_data || null,
+      wellness_data: serializedWellnessData,
       created_at: now,
       updated_at: now,
     };
 
     await this.db('wellness_sessions').insert(sessionData);
     
-    // Return the created session
+    // Return the created session with parsed JSON
     const result = await this.db('wellness_sessions')
       .select('*')
       .where('id', id)
       .first();
 
+    // Parse wellness_data back to object
+    if (result && result.wellness_data) {
+      try {
+        result.wellness_data = JSON.parse(result.wellness_data);
+      } catch (error) {
+        // If parsing fails, keep as string
+        console.warn('Failed to parse wellness_data:', error);
+      }
+    }
+
     return result;
   }
 
   async getWellnessSessionsByUserId(email: string, limit = 50, offset = 0): Promise<WellnessSession[]> {
-    return await this.db('wellness_sessions')
+    const results = await this.db('wellness_sessions')
       .select('*')
       .where('user_id', email)
       .orderBy('created_at', 'desc')
       .limit(limit)
       .offset(offset);
+
+    // Parse wellness_data for each result
+    return results.map(result => {
+      if (result.wellness_data && typeof result.wellness_data === 'string') {
+        try {
+          result.wellness_data = JSON.parse(result.wellness_data);
+        } catch (error) {
+          console.warn('Failed to parse wellness_data:', error);
+        }
+      }
+      return result;
+    });
   }
 
   async getAllWellnessSessions(limit = 50, offset = 0): Promise<WellnessSession[]> {
-    return await this.db('wellness_sessions')
+    const results = await this.db('wellness_sessions')
       .select('*')
       .orderBy('created_at', 'desc')
       .limit(limit)
       .offset(offset);
+
+    // Parse wellness_data for each result
+    return results.map(result => {
+      if (result.wellness_data && typeof result.wellness_data === 'string') {
+        try {
+          result.wellness_data = JSON.parse(result.wellness_data);
+        } catch (error) {
+          console.warn('Failed to parse wellness_data:', error);
+        }
+      }
+      return result;
+    });
   }
 
   async getWellnessSessionById(id: string, email: string): Promise<WellnessSession | null> {
@@ -57,7 +98,18 @@ export class WellnessSessionService {
       .where('user_id', email)
       .first();
 
-    return result || null;
+    if (!result) return null;
+
+    // Parse wellness_data back to object
+    if (result.wellness_data && typeof result.wellness_data === 'string') {
+      try {
+        result.wellness_data = JSON.parse(result.wellness_data);
+      } catch (error) {
+        console.warn('Failed to parse wellness_data:', error);
+      }
+    }
+
+    return result;
   }
 
   async updateWellnessSession(id: string, email: string, updates: Partial<CreateWellnessSessionRequest>): Promise<WellnessSession | null> {
@@ -70,7 +122,12 @@ export class WellnessSessionService {
       updateData.summary = updates.summary;
     }
     if (updates.wellness_data !== undefined) {
-      updateData.wellness_data = updates.wellness_data;
+      // Serialize wellness_data for SQLite
+      if (updates.wellness_data === null) {
+        updateData.wellness_data = null;
+      } else {
+        updateData.wellness_data = JSON.stringify(updates.wellness_data);
+      }
     }
 
     const updatedRows = await this.db('wellness_sessions')
@@ -82,14 +139,25 @@ export class WellnessSessionService {
       return null;
     }
 
-    // Return the updated session
+    // Return the updated session with parsed JSON
     const result = await this.db('wellness_sessions')
       .select('*')
       .where('id', id)
       .where('user_id', email)
       .first();
 
-    return result || null;
+    if (!result) return null;
+
+    // Parse wellness_data back to object
+    if (result.wellness_data && typeof result.wellness_data === 'string') {
+      try {
+        result.wellness_data = JSON.parse(result.wellness_data);
+      } catch (error) {
+        console.warn('Failed to parse wellness_data:', error);
+      }
+    }
+
+    return result;
   }
 
   async deleteWellnessSession(id: string, email: string): Promise<boolean> {

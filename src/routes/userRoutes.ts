@@ -41,12 +41,22 @@ router.get('/', async (req: express.Request, res: express.Response) => {
       if (!userMap.has(email)) {
         userMap.set(email, []);
       }
+      // Parse wellness_data if it's a string
+      let parsedWellnessData = session.wellness_data;
+      if (session.wellness_data && typeof session.wellness_data === 'string') {
+        try {
+          parsedWellnessData = JSON.parse(session.wellness_data);
+        } catch (error) {
+          console.warn('Failed to parse wellness_data in userRoutes:', error);
+        }
+      }
+      
       userMap.get(email)!.push({
         id: session.id,
         transcription: session.transcription,
         summary: session.summary,
         analysis_results: session.analysis_results,
-        wellness_data: session.wellness_data,
+        wellness_data: parsedWellnessData,
         created_at: session.created_at,
         updated_at: session.updated_at
       });
