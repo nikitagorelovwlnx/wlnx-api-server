@@ -10,7 +10,7 @@ Lightweight TypeScript backend with PostgreSQL for wellness coaching session sto
 - ✅ RESTful API for session management (CRUD operations)
 - ✅ **FormSpec v2** - Dynamic form schema management with versioning
 - ✅ Form schema API for client UI rendering
-- ✅ **Prompt Management** - Conversation prompts for 5-stage interviews
+- ✅ **Prompt Management** - Fallback system: DB → Hardcoded defaults with custom modifications
 - ✅ Bot integration API for dynamic prompt delivery
 - ✅ Full test coverage with Jest
 - ✅ One-click server startup
@@ -131,6 +131,65 @@ If you have PostgreSQL installed locally:
 - `GET /health` - Server health status
 
 ## Usage Examples
+
+### Get Wellness Interview Prompts (Fallback System)
+```bash
+curl -X GET http://localhost:3000/api/prompts
+```
+
+Response:
+```json
+{
+  "success": true,
+  "data": {
+    "demographics_baseline": {
+      "question_prompt": "Based on the current conversation context and missing demographic information, generate the next logical question to ask the user...",
+      "extraction_prompt": "Extract demographic data from the user's response and return it in structured JSON format..."
+    },
+    "biometrics_habits": {
+      "question_prompt": "Based on the conversation context and missing biometric/habit information...",
+      "extraction_prompt": "Extract biometric and habit data from the user's response..."
+    },
+    "lifestyle_context": {
+      "question_prompt": "Generate a contextual question about the user's lifestyle factors...",
+      "extraction_prompt": "Extract lifestyle and work context data from the user's response..."
+    },
+    "medical_history": {
+      "question_prompt": "Generate a sensitive, appropriate question about the user's medical history...",
+      "extraction_prompt": "Extract medical and health-related information with high sensitivity to privacy..."
+    },
+    "goals_preferences": {
+      "question_prompt": "Generate an engaging question about the user's health goals and preferences...",
+      "extraction_prompt": "Extract goals, preferences, and motivational information from the user's response..."
+    }
+  }
+}
+```
+
+### Update Custom Prompts
+```bash
+curl -X PUT http://localhost:3000/api/prompts/demographics_baseline \
+  -H "Content-Type: application/json" \
+  -d '{
+    "question_prompt": "Custom question: What is your age and basic info?",
+    "extraction_prompt": "Custom extraction: Parse age, gender, weight, height from response"
+  }'
+```
+
+Response:
+```json
+{
+  "success": true,
+  "data": {
+    "stage_id": "demographics_baseline",
+    "prompts": {
+      "question_prompt": "Custom question: What is your age and basic info?",
+      "extraction_prompt": "Custom extraction: Parse age, gender, weight, height from response"
+    }
+  },
+  "message": "Prompts for stage 'demographics_baseline' updated successfully"
+}
+```
 
 ### Get All Users with Complete Session History
 ```bash
