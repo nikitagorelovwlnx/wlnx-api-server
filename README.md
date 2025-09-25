@@ -123,8 +123,9 @@ If you have PostgreSQL installed locally:
 ### Form Schema (Hardcoded)
 - `GET /api/form-schemas` - Get current wellness form schema (hardcoded, single version)
 
-### Interview Prompts (Hardcoded)
-- `GET /api/prompts` - Get wellness interview prompts map for 5 stages
+### Interview Prompts (Fallback System)
+- `GET /api/prompts` - Get wellness interview prompts (fallback to hardcoded if DB empty)
+- `PUT /api/prompts/:stageId` - Update prompts for specific stage (stores only changes)
 
 ### Health Check
 - `GET /health` - Server health status
