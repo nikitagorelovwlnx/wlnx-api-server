@@ -29,11 +29,17 @@ router.get('/', async (req, res) => {
       }
     });
 
-    res.json(finalPrompts);
+    res.json({
+      success: true,
+      data: finalPrompts
+    });
   } catch (error) {
     console.error('Error fetching prompts:', error);
     // Fallback to hardcoded prompts if database fails
-    res.json(WELLNESS_PROMPTS);
+    res.json({
+      success: true,
+      data: WELLNESS_PROMPTS
+    });
   }
 });
 
