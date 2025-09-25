@@ -4,6 +4,8 @@ import helmet from 'helmet';
 import * as dotenv from 'dotenv';
 import interviewRoutes from './routes/interviewRoutes';
 import userRoutes from './routes/userRoutes';
+import formSchemaRoutes from './routes/formSchemas';
+import promptRoutes from './routes/prompts';
 
 dotenv.config();
 
@@ -32,6 +34,8 @@ app.get('/health', (req, res) => {
 // Routes
 app.use('/api/interviews', interviewRoutes);
 app.use('/api/users', userRoutes);
+app.use('/api/form-schemas', formSchemaRoutes);
+app.use('/api/prompts', promptRoutes);
 
 // Error handling middleware
 app.use((err: Error, req: express.Request, res: express.Response, next: express.NextFunction) => {

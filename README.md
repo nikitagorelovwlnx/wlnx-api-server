@@ -8,6 +8,10 @@ Lightweight TypeScript backend with PostgreSQL for wellness coaching session sto
 - ✅ Wellness coaching session storage with transcriptions and summaries
 - ✅ User session history and statistics
 - ✅ RESTful API for session management (CRUD operations)
+- ✅ **FormSpec v2** - Dynamic form schema management with versioning
+- ✅ Form schema API for client UI rendering
+- ✅ **Prompt Management** - Conversation prompts for 5-stage interviews
+- ✅ Bot integration API for dynamic prompt delivery
 - ✅ Full test coverage with Jest
 - ✅ One-click server startup
 
@@ -115,6 +119,12 @@ If you have PostgreSQL installed locally:
 - `GET /api/interviews/:id` - Get specific session (requires email query parameter)
 - `PUT /api/interviews/:id` - Update session (requires email in body; optional wellness_data JSON)
 - `DELETE /api/interviews/:id` - Delete session (requires email in body)
+
+### Form Schema (Hardcoded)
+- `GET /api/form-schemas` - Get current wellness form schema (hardcoded, single version)
+
+### Interview Prompts (Hardcoded)
+- `GET /api/prompts` - Get wellness interview prompts map for 5 stages
 
 ### Health Check
 - `GET /health` - Server health status
