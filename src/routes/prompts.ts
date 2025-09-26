@@ -72,28 +72,37 @@ router.put('/:stageId', async (req, res) => {
       // Delete custom prompt to return to defaults
       await getDb()('custom_prompts').where('stage_id', stageId).del();
     } else {
-      // Prepare update data
+      // Prepare update data - only include fields that have actual content
       const updateData: any = { stage_id: stageId };
+      let hasValidUpdates = false;
+      
       validFields.forEach(field => {
-        if (updates.hasOwnProperty(field)) {
+        if (updates.hasOwnProperty(field) && updates[field] && updates[field].trim() !== '') {
           updateData[field] = updates[field];
+          hasValidUpdates = true;
         }
       });
 
-      // Check if custom prompt already exists
-      const existing = await getDb()('custom_prompts').where('stage_id', stageId).first();
-      
-      if (existing) {
-        // Update existing custom prompt
-        await getDb()('custom_prompts')
-          .where('stage_id', stageId)
-          .update({
-            ...updateData,
-            updated_at: new Date()
-          });
+      // Only save to database if there are actual non-empty updates
+      if (hasValidUpdates) {
+        // Check if custom prompt already exists
+        const existing = await getDb()('custom_prompts').where('stage_id', stageId).first();
+        
+        if (existing) {
+          // Update existing custom prompt
+          await getDb()('custom_prompts')
+            .where('stage_id', stageId)
+            .update({
+              ...updateData,
+              updated_at: new Date()
+            });
+        } else {
+          // Insert new custom prompt
+          await getDb()('custom_prompts').insert(updateData);
+        }
       } else {
-        // Insert new custom prompt
-        await getDb()('custom_prompts').insert(updateData);
+        // If no valid updates, delete any existing custom prompt to return to defaults
+        await getDb()('custom_prompts').where('stage_id', stageId).del();
       }
     }
 
