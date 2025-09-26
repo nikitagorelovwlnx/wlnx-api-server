@@ -6,11 +6,11 @@ const router = express.Router();
 
 /**
  * GET /prompts
- * Get wellness interview prompts with fallback to hardcoded defaults
+ * Get wellness interview prompts from database
  */
 router.get('/', async (req, res) => {
   try {
-    // Try to get custom prompts from database
+    // Get custom prompts from database
     const customPrompts = await db('custom_prompts').select('*');
     
     // Start with hardcoded defaults
@@ -35,10 +35,9 @@ router.get('/', async (req, res) => {
     });
   } catch (error) {
     console.error('Error fetching prompts:', error);
-    // Fallback to hardcoded prompts if database fails
-    res.json({
-      success: true,
-      data: WELLNESS_PROMPTS
+    res.status(500).json({
+      success: false,
+      error: 'Database connection failed - unable to fetch prompts'
     });
   }
 });

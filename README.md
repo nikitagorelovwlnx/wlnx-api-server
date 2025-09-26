@@ -123,8 +123,8 @@ If you have PostgreSQL installed locally:
 ### Form Schema (Hardcoded)
 - `GET /api/form-schemas` - Get current wellness form schema (hardcoded, single version)
 
-### Interview Prompts (Fallback System)
-- `GET /api/prompts` - Get wellness interview prompts (fallback to hardcoded if DB empty)
+### Interview Prompts
+- `GET /api/prompts` - Get wellness interview prompts from database
 - `PUT /api/prompts/:stageId` - Update prompts for specific stage (stores only changes)
 
 ### Health Check
@@ -132,7 +132,7 @@ If you have PostgreSQL installed locally:
 
 ## Usage Examples
 
-### Get Wellness Interview Prompts (Fallback System)
+### Get Wellness Interview Prompts
 ```bash
 curl -X GET http://localhost:3000/api/prompts
 ```
