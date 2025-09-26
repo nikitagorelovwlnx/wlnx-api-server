@@ -7,22 +7,28 @@ import {
   StagePromptResponse,
   FormPromptsResponse
 } from '../types/prompt-spec';
+import { Knex } from 'knex';
 
 export class PromptService {
   private static readonly TABLE_NAME = 'prompts';
+  private database: Knex;
+
+  constructor(database?: Knex) {
+    this.database = database || knex;
+  }
 
   /**
    * Get all active prompts for a form
    */
   async getFormPrompts(formName: string, locale: string = 'en-US', version?: string): Promise<PromptSpec[]> {
-    let query = knex<PromptEntity>(PromptService.TABLE_NAME)
+    let query = this.database<PromptEntity>(PromptService.TABLE_NAME)
       .where({ form_name: formName, locale, is_active: true });
 
     if (version) {
       query = query.where({ version });
     } else {
       // Get latest version for each stage
-      const subquery = knex(PromptService.TABLE_NAME)
+      const subquery = this.database(PromptService.TABLE_NAME)
         .select('stage_id')
         .max('version as latest_version')
         .where({ form_name: formName, locale, is_active: true })
@@ -44,7 +50,7 @@ export class PromptService {
     locale: string = 'en-US', 
     version?: string
   ): Promise<PromptSpec | null> {
-    let query = knex<PromptEntity>(PromptService.TABLE_NAME)
+    let query = this.database<PromptEntity>(PromptService.TABLE_NAME)
       .where({ form_name: formName, stage_id: stageId, locale, is_active: true });
 
     if (version) {
@@ -67,7 +73,7 @@ export class PromptService {
     locale?: string;
     isActive?: boolean;
   }): Promise<PromptSpec[]> {
-    let query = knex<PromptEntity>(PromptService.TABLE_NAME);
+    let query = this.database<PromptEntity>(PromptService.TABLE_NAME);
 
     if (filters?.formName) query = query.where('form_name', filters.formName);
     if (filters?.stageId) query = query.where('stage_id', filters.stageId);
@@ -97,10 +103,24 @@ export class PromptService {
       created_by: request.created_by
     };
 
-    const [inserted] = await knex<PromptEntity>(PromptService.TABLE_NAME)
-      .insert(entity)
-      .returning('*');
+    const [insertedId] = await this.database<PromptEntity>(PromptService.TABLE_NAME)
+      .insert(entity);
 
+    // SQLite doesn't support returning, so fetch the inserted record by stage_id and form_name
+    const inserted = await this.database<PromptEntity>(PromptService.TABLE_NAME)
+      .where({ 
+        stage_id: entity.stage_id,
+        form_name: entity.form_name,
+        version: entity.version,
+        locale: entity.locale
+      })
+      .orderBy('created_at', 'desc')
+      .first();
+
+    if (!inserted) {
+      throw new Error('Failed to retrieve inserted prompt');
+    }
+    
     return this.entityToPromptSpec(inserted);
   }
 
@@ -108,7 +128,7 @@ export class PromptService {
    * Update existing prompt
    */
   async updatePrompt(id: string, updates: UpdatePromptRequest): Promise<PromptSpec | null> {
-    const current = await knex<PromptEntity>(PromptService.TABLE_NAME)
+    const current = await this.database<PromptEntity>(PromptService.TABLE_NAME)
       .where({ id })
       .first();
 
@@ -116,22 +136,36 @@ export class PromptService {
       return null;
     }
 
+    // Parse current prompt_data if it's a string
+    let currentPromptData = current.prompt_data;
+    if (typeof currentPromptData === 'string') {
+      try {
+        currentPromptData = JSON.parse(currentPromptData);
+      } catch (error) {
+        currentPromptData = { content: {}, metadata: {} };
+      }
+    }
+    
     const updatedData = {
-      ...current.prompt_data,
-      content: { ...current.prompt_data.content, ...updates.content },
-      metadata: { ...current.prompt_data.metadata, ...updates.metadata }
+      ...currentPromptData,
+      content: { ...currentPromptData?.content, ...updates.content },
+      metadata: { ...currentPromptData?.metadata, ...updates.metadata }
     };
 
-    const [updated] = await knex<PromptEntity>(PromptService.TABLE_NAME)
+    await this.database<PromptEntity>(PromptService.TABLE_NAME)
       .where({ id })
       .update({
         name: updates.name || current.name,
         description: updates.description !== undefined ? updates.description : current.description,
-        prompt_data: updatedData,
-        updated_at: knex.fn.now()
-      })
-      .returning('*');
+        prompt_data: JSON.stringify(updatedData), // Force JSON serialization for SQLite
+        updated_at: this.database.fn.now()
+      });
 
+    // SQLite doesn't support returning, so fetch the updated record
+    const updated = await this.database<PromptEntity>(PromptService.TABLE_NAME)
+      .where({ id })
+      .first();
+      
     return updated ? this.entityToPromptSpec(updated) : null;
   }
 
@@ -169,11 +203,11 @@ export class PromptService {
    * Deactivate prompt
    */
   async deactivatePrompt(id: string): Promise<void> {
-    await knex<PromptEntity>(PromptService.TABLE_NAME)
+    await this.database<PromptEntity>(PromptService.TABLE_NAME)
       .where({ id })
       .update({ 
         is_active: false, 
-        updated_at: knex.fn.now() 
+        updated_at: this.database.fn.now() 
       });
   }
 
@@ -233,6 +267,24 @@ export class PromptService {
    * Convert database entity to PromptSpec
    */
   private entityToPromptSpec(entity: PromptEntity): PromptSpec {
+    // Parse JSON if it's stored as string (SQLite issue)
+    let promptData = entity.prompt_data;
+    if (typeof promptData === 'string') {
+      if (promptData === '[object Object]') {
+        // SQLite sometimes returns this invalid string, use fallback
+        promptData = { content: {}, metadata: {} };
+      } else {
+        try {
+          promptData = JSON.parse(promptData);
+        } catch (error) {
+          console.warn('Failed to parse prompt_data JSON:', error);
+          promptData = { content: {}, metadata: {} };
+        }
+      }
+    } else if (!promptData || typeof promptData !== 'object') {
+      promptData = { content: {}, metadata: {} };
+    }
+    
     return {
       id: entity.id,
       name: entity.name,
@@ -241,9 +293,9 @@ export class PromptService {
       form_name: entity.form_name,
       version: entity.version,
       locale: entity.locale,
-      content: entity.prompt_data.content || {},
-      metadata: entity.prompt_data.metadata || {},
-      is_active: entity.is_active,
+      content: promptData?.content || {},
+      metadata: promptData?.metadata || {},
+      is_active: Boolean(entity.is_active), // Convert 0/1 to boolean
       created_at: entity.created_at,
       updated_at: entity.updated_at,
       created_by: entity.created_by

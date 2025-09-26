@@ -1,20 +1,19 @@
 import { FormSchemaService } from '../services/formSchemaService';
-import { db } from '../database/knex';
+import { testDb } from '../database/knex.test';
 
 describe('FormSchemaService', () => {
   let formSchemaService: FormSchemaService;
 
   beforeAll(async () => {
-    formSchemaService = new FormSchemaService();
+    formSchemaService = new FormSchemaService(testDb);
   });
 
   beforeEach(async () => {
-    // Clean up test data
-    await db('form_schemas').del();
+    // Clean up test data - handled by setup.ts
   });
 
   afterAll(async () => {
-    await db.destroy();
+    // Connection closed by setup.ts
   });
 
   describe('importWellnessSchema', () => {
@@ -45,7 +44,7 @@ describe('FormSchemaService', () => {
     it('should create stages with proper targets', async () => {
       const schema = await formSchemaService.importWellnessSchema();
       
-      const demographicsStage = schema.stages.find(s => s.id === 'S1_demographics');
+      const demographicsStage = schema.stages.find(s => s.id === 'demographics_baseline');
       expect(demographicsStage).toBeDefined();
       expect(demographicsStage?.targets).toContain('age');
       expect(demographicsStage?.targets).toContain('gender');

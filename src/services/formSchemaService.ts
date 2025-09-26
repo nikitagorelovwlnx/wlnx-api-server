@@ -1,14 +1,20 @@
 import { db as knex } from '../database/knex';
 import { FormSpec, FormSchemaEntity, FieldSpec, StageSpec } from '../types/form-spec';
+import { Knex } from 'knex';
 
 export class FormSchemaService {
   private static readonly TABLE_NAME = 'form_schemas';
+  private database: Knex;
+
+  constructor(database?: Knex) {
+    this.database = database || knex;
+  }
 
   /**
    * Get all active form schemas
    */
   async getActiveSchemas(locale: string = 'en-US'): Promise<FormSpec[]> {
-    const entities = await knex<FormSchemaEntity>(FormSchemaService.TABLE_NAME)
+    const entities = await this.database<FormSchemaEntity>(FormSchemaService.TABLE_NAME)
       .where({ is_active: true, locale })
       .orderBy('name')
       .orderBy('version');
@@ -20,7 +26,7 @@ export class FormSchemaService {
    * Get specific form schema by name and version
    */
   async getSchema(name: string, version?: string, locale: string = 'en-US'): Promise<FormSpec | null> {
-    let query = knex<FormSchemaEntity>(FormSchemaService.TABLE_NAME)
+    let query = this.database<FormSchemaEntity>(FormSchemaService.TABLE_NAME)
       .where({ name, locale, is_active: true });
 
     if (version) {
@@ -58,7 +64,7 @@ export class FormSchemaService {
       created_by: formSpec.created_by
     };
 
-    const [inserted] = await knex<FormSchemaEntity>(FormSchemaService.TABLE_NAME)
+    const [inserted] = await this.database<FormSchemaEntity>(FormSchemaService.TABLE_NAME)
       .insert(entity)
       .returning('*');
 
@@ -95,7 +101,7 @@ export class FormSchemaService {
    * Deactivate schema version
    */
   async deactivateSchema(name: string, version?: string, locale: string = 'en-US'): Promise<void> {
-    let query = knex<FormSchemaEntity>(FormSchemaService.TABLE_NAME)
+    let query = this.database<FormSchemaEntity>(FormSchemaService.TABLE_NAME)
       .where({ name, locale });
 
     if (version) {
@@ -104,7 +110,7 @@ export class FormSchemaService {
 
     await query.update({ 
       is_active: false, 
-      updated_at: knex.fn.now() 
+      updated_at: this.database.fn.now() 
     });
   }
 
@@ -132,14 +138,25 @@ export class FormSchemaService {
    * Convert database entity to FormSpec
    */
   private entityToFormSpec(entity: FormSchemaEntity): FormSpec {
+    // Parse JSON if it's stored as string (SQLite issue)
+    let schemaData = entity.schema_data;
+    if (typeof schemaData === 'string') {
+      try {
+        schemaData = JSON.parse(schemaData);
+      } catch (error) {
+        console.warn('Failed to parse schema_data JSON:', error);
+        schemaData = { fields: [], stages: [] };
+      }
+    }
+    
     return {
       id: entity.id,
       name: entity.name,
       description: entity.description,
       version: entity.version,
       locale: entity.locale,
-      fields: entity.schema_data.fields || [],
-      stages: entity.schema_data.stages || [],
+      fields: schemaData?.fields || [],
+      stages: schemaData?.stages || [],
       created_at: entity.created_at,
       updated_at: entity.updated_at,
       created_by: entity.created_by
@@ -352,6 +369,18 @@ export class FormSchemaService {
           placeholder: 'Contraindications to procedures',
           group: 'medical',
           priority: 17,
+          widget: 'tags'
+        }
+      },
+      {
+        key: 'injuries',
+        type: 'array',
+        validation: { maxItems: 10 },
+        ui: {
+          label: 'Past Injuries',
+          placeholder: 'Past injuries that may affect activities',
+          group: 'medical',
+          priority: 18,
           widget: 'tags'
         }
       }

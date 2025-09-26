@@ -9,8 +9,11 @@ beforeEach(async () => {
   // Clean all tables before each test
   try {
     await testDb('wellness_sessions').del();
+    await testDb('prompts').del();
+    await testDb('form_schemas').del();
+    await testDb('custom_prompts').del();
   } catch (error) {
-    // Ignore if table doesn't exist
+    // Ignore if tables don't exist
   }
 });
 

@@ -1,21 +1,21 @@
 import { PromptService } from '../services/promptService';
-import { db } from '../database/knex';
+import { testDb } from '../database/knex.test';
 import { CreatePromptRequest } from '../types/prompt-spec';
 
 describe('PromptService', () => {
   let promptService: PromptService;
 
   beforeAll(async () => {
-    promptService = new PromptService();
+    promptService = new PromptService(testDb);
   });
 
   beforeEach(async () => {
     // Clean up test data
-    await db('prompts').del();
+    await testDb('prompts').del();
   });
 
   afterAll(async () => {
-    await db.destroy();
+    await testDb.destroy();
   });
 
   describe('importDefaultWellnessPrompts', () => {
@@ -30,20 +30,20 @@ describe('PromptService', () => {
       // Check all stages are covered
       const stageIds = prompts.map(p => p.stage_id).sort();
       expect(stageIds).toEqual([
-        'S1_demographics',
-        'S2_lifestyle', 
-        'S3_health_goals',
-        'S4_medical',
-        'S5_additional'
+        'biometrics_habits',
+        'demographics_baseline',
+        'goals_preferences', 
+        'lifestyle_context',
+        'medical_history'
       ]);
     });
 
     it('should create prompts with proper content structure', async () => {
       const prompts = await promptService.importDefaultWellnessPrompts('en-US');
       
-      const demographicsPrompt = prompts.find(p => p.stage_id === 'S1_demographics');
+      const demographicsPrompt = prompts.find(p => p.stage_id === 'demographics_baseline');
       expect(demographicsPrompt).toBeDefined();
-      expect(demographicsPrompt?.content.main_prompt).toContain('basic information');
+      expect(demographicsPrompt?.content.main_prompt).toContain('age');
       expect(demographicsPrompt?.content.follow_up_prompt).toBeDefined();
       expect(demographicsPrompt?.content.validation_prompt).toBeDefined();
       expect(demographicsPrompt?.content.completion_prompt).toBeDefined();
@@ -76,14 +76,10 @@ describe('PromptService', () => {
     });
 
     it('should return specific stage prompt', async () => {
-      const prompt = await promptService.getStagePrompt(
-        'wellness_intake', 
-        'S1_demographics', 
-        'en-US'
-      );
+      const prompt = await promptService.getStagePrompt('wellness_intake', 'demographics_baseline', 'en-US');
       
       expect(prompt).toBeDefined();
-      expect(prompt?.stage_id).toBe('S1_demographics');
+      expect(prompt?.stage_id).toBe('demographics_baseline');
       expect(prompt?.form_name).toBe('wellness_intake');
       expect(prompt?.content.main_prompt).toBeDefined();
     });
@@ -104,7 +100,7 @@ describe('PromptService', () => {
       const promptData: CreatePromptRequest = {
         name: 'Test Prompt',
         description: 'A test prompt',
-        stage_id: 'S1_test',
+        stage_id: 'test_stage',
         form_name: 'test_form',
         version: '1.0.0',
         locale: 'en-US',
@@ -125,7 +121,7 @@ describe('PromptService', () => {
       
       expect(prompt).toBeDefined();
       expect(prompt.name).toBe('Test Prompt');
-      expect(prompt.stage_id).toBe('S1_test');
+      expect(prompt.stage_id).toBe('test_stage');
       expect(prompt.content.main_prompt).toBe('This is a test prompt');
       expect(prompt.metadata?.tone).toBe('professional');
       expect(prompt.is_active).toBe(true);
@@ -175,7 +171,7 @@ describe('PromptService', () => {
       expect(data?.locale).toBe('en-US');
       expect(data?.stages).toHaveLength(5);
       
-      const stage1 = data?.stages.find(s => s.stage_id === 'S1_demographics');
+      const stage1 = data?.stages.find(s => s.stage_id === 'demographics_baseline');
       expect(stage1).toBeDefined();
       expect(stage1?.prompts?.main_prompt).toBeDefined();
       expect(stage1?.prompts?.follow_up_prompt).toBeDefined();
@@ -190,7 +186,7 @@ describe('PromptService', () => {
     it('should create new version of existing prompt', async () => {
       const newVersion = await promptService.createPromptVersion(
         'wellness_intake',
-        'S1_demographics',
+        'demographics_baseline',
         '1.1.0',
         {
           content: {
@@ -203,19 +199,20 @@ describe('PromptService', () => {
       expect(newVersion).toBeDefined();
       expect(newVersion?.version).toBe('1.1.0');
       expect(newVersion?.content.main_prompt).toBe('Updated prompt for version 1.1.0');
-      expect(newVersion?.stage_id).toBe('S1_demographics');
+      expect(newVersion?.stage_id).toBe('demographics_baseline');
     });
 
     it('should throw error for non-existent prompt', async () => {
       await expect(
         promptService.createPromptVersion(
           'non_existent_form',
-          'S1_demographics',
+          'demographics_baseline',
           '1.1.0',
           {},
           'en-US'
         )
-      ).rejects.toThrow("Prompt for stage 'S1_demographics' in form 'non_existent_form' not found");
+      ).rejects.toThrow("Prompt for stage 'demographics_baseline' in form 'non_existent_form' not found");
     });
   });
 });
+

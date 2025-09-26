@@ -5,8 +5,8 @@
 
 export interface WellnessPrompts {
   [stageId: string]: {
-    question_prompt: string;    // Генерирует следующий вопрос пользователю
-    extraction_prompt: string; // Извлекает данные из ответа пользователя
+    question_prompt: string;    // Generates next question for the user
+    extraction_prompt: string; // Extracts data from user's response
   };
 }
 
