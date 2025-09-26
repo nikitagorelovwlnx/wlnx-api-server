@@ -16,7 +16,12 @@ export class WellnessSessionService {
     // Properly serialize wellness_data for PostgreSQL JSONB
     let serializedWellnessData = null;
     if (data.wellness_data !== undefined && data.wellness_data !== null) {
-      serializedWellnessData = JSON.stringify(data.wellness_data);
+      // If it's already a string, use as is, otherwise stringify
+      if (typeof data.wellness_data === 'string') {
+        serializedWellnessData = data.wellness_data;
+      } else {
+        serializedWellnessData = JSON.stringify(data.wellness_data);
+      }
     }
     
     const sessionData = {
@@ -37,8 +42,8 @@ export class WellnessSessionService {
       .where('id', id)
       .first();
 
-    // Parse wellness_data back to object
-    if (result && result.wellness_data) {
+    // Parse wellness_data back to object if it's a string
+    if (result && result.wellness_data && typeof result.wellness_data === 'string') {
       try {
         result.wellness_data = JSON.parse(result.wellness_data);
       } catch (error) {
@@ -125,6 +130,8 @@ export class WellnessSessionService {
       // Serialize wellness_data for PostgreSQL JSONB
       if (updates.wellness_data === null) {
         updateData.wellness_data = null;
+      } else if (typeof updates.wellness_data === 'string') {
+        updateData.wellness_data = updates.wellness_data;
       } else {
         updateData.wellness_data = JSON.stringify(updates.wellness_data);
       }
