@@ -176,6 +176,15 @@ curl -X PUT http://localhost:3000/api/prompts/demographics_baseline \
   }'
 ```
 
+### Reset to Default Prompts
+```bash
+curl -X PUT http://localhost:3000/api/prompts/demographics_baseline \
+  -H "Content-Type: application/json" \
+  -d '{
+    "question_prompt": null
+  }'
+```
+
 Response:
 ```json
 {

@@ -43,7 +43,7 @@ curl -X PUT http://localhost:3000/api/prompts/demographics_baseline \
   -H "Content-Type: application/json" \
   -d '{
     "question_prompt": "Custom question prompt",
-    "main_prompt": "Custom main prompt"
+    "extraction_prompt": "Custom extraction prompt"
   }'
 ```
 
