@@ -324,7 +324,7 @@ src/
 │   └── wellnessSessionService.ts # Wellness session service
 ├── tests/
 │   ├── setup.ts                    # Test setup
-│   ├── testApp.ts                  # Test application with SQLite
+│   ├── testApp.ts                  # Test application with PostgreSQL
 │   ├── wellnessSession.test.ts     # Wellness session API tests
 │   ├── wellnessSessionService.test.ts # Service tests
 │   └── api.test.ts                 # API integration tests
@@ -387,39 +387,27 @@ Production features:
 
 ## Testing
 
-The project uses **Jest** with **SQLite in-memory database** for fast, isolated testing.
+The project uses **Jest** with **PostgreSQL test database** for comprehensive testing.
 
 Run all tests:
 ```bash
 npm test
 ```
-
-Run tests in watch mode:
-```bash
-npm run test:watch
-```
-
 Run tests with coverage:
 ```bash
 npm run test:coverage
 ```
 
-Run tests with Docker:
-```bash
-./scripts/docker-test.sh
-```
-
 **Test Features:**
-- ✅ No external dependencies (uses SQLite in-memory)
-- ✅ Fast execution (< 2 seconds)
-- ✅ 34 test cases covering all API endpoints
-- ✅ Isolated test environment
-- ✅ Automatic database cleanup between tests
+- PostgreSQL test database for realistic testing
+- Comprehensive test coverage
+- 127+ test cases covering all API endpoints
+- Isolated test environment with migrations
+- Automatic database cleanup between tests
 
 ## Troubleshooting
 
 ### Common API Errors
-
 **404 Not Found Error:**
 - ❌ **Wrong URL**: Ensure you're using `/api/interviews` (plural), not `/api/interview`
 - ❌ **Wrong endpoint**: Check available endpoints in this documentation

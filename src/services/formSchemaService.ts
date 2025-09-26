@@ -138,7 +138,7 @@ export class FormSchemaService {
    * Convert database entity to FormSpec
    */
   private entityToFormSpec(entity: FormSchemaEntity): FormSpec {
-    // Parse JSON if it's stored as string (SQLite issue)
+    // Parse JSON if it's stored as string
     let schemaData = entity.schema_data;
     if (typeof schemaData === 'string') {
       try {

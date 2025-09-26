@@ -13,7 +13,7 @@ export class WellnessSessionService {
     const id = uuidv4();
     const now = new Date().toISOString();
     
-    // Properly serialize wellness_data for SQLite
+    // Properly serialize wellness_data for PostgreSQL JSONB
     let serializedWellnessData = null;
     if (data.wellness_data !== undefined && data.wellness_data !== null) {
       serializedWellnessData = JSON.stringify(data.wellness_data);
@@ -122,7 +122,7 @@ export class WellnessSessionService {
       updateData.summary = updates.summary;
     }
     if (updates.wellness_data !== undefined) {
-      // Serialize wellness_data for SQLite
+      // Serialize wellness_data for PostgreSQL JSONB
       if (updates.wellness_data === null) {
         updateData.wellness_data = null;
       } else {

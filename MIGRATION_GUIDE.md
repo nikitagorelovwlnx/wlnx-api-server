@@ -48,36 +48,31 @@ npm run migrate
 - `POST /api/interviews` - Create wellness session
 - `GET /api/interviews` - Get user sessions (requires email query parameter)
 - `GET /api/interviews/:id` - Get specific session (requires email query parameter)
-- `PUT /api/interviews/:id` - Update session (requires email in body)
 - `DELETE /api/interviews/:id` - Delete session (requires email in body)
 - `GET /health` - Health check
 
 ## Testing
 
-New comprehensive test infrastructure with **SQLite in-memory database**:
+New comprehensive test infrastructure with **PostgreSQL test database**:
 
 ```bash
-# Run all tests (34 test cases)
+# Run all tests (127+ test cases)
 npm test
 
-# Run tests with coverage
+# Run with coverage
 npm run test:coverage
-
-# Watch mode for development
-npm run test:watch
 ```
 
 **Test Features:**
-- ✅ No external dependencies (SQLite in-memory)
-- ✅ Fast execution (< 2 seconds)
-- ✅ 34 test cases covering all API endpoints
-- ✅ Isolated test environment
+- ✅ PostgreSQL test database for realistic testing
+- ✅ Comprehensive test coverage
+- ✅ 127+ test cases covering all API endpoints
+- ✅ Isolated test environment with migrations
 - ✅ Automatic database cleanup between tests
 
 ## Key Benefits
 
 1. **Simplified Architecture** - No complex authentication or integrations
-2. **Better Performance** - Fewer dependencies and database queries
 3. **Easier Maintenance** - Focused scope with clear responsibilities
 4. **External Service Ready** - Perfect for receiving wellness session data from external services
 
