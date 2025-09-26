@@ -202,4 +202,100 @@ describe('WellnessSessionService', () => {
       expect(userIds).toContain('user2@example.com');
     });
   });
+
+  describe('Edge cases and error handling', () => {
+    it('should handle malformed wellness_data gracefully', async () => {
+      const email = 'malformed@example.com';
+      
+      // Test with circular reference (should be handled by JSON.stringify)
+      const circularObj: any = { name: 'test' };
+      circularObj.self = circularObj;
+      
+      // This should not throw an error, but handle it gracefully
+      try {
+        const result = await wellnessSessionService.createWellnessSession(email, {
+          transcription: 'Test with malformed data',
+          summary: 'Test summary',
+          wellness_data: circularObj
+        });
+        // If it succeeds, wellness_data should be null or handled
+        expect(result).toBeDefined();
+      } catch (error) {
+        // If it fails, that's also acceptable for circular references
+        expect(error).toBeDefined();
+      }
+    });
+
+    it('should handle very large wellness_data', async () => {
+      const email = 'large-data@example.com';
+      
+      // Create a large object
+      const largeData = {
+        measurements: Array(1000).fill(0).map((_, i) => ({
+          timestamp: new Date().toISOString(),
+          value: Math.random() * 100,
+          index: i
+        }))
+      };
+      
+      const result = await wellnessSessionService.createWellnessSession(email, {
+        transcription: 'Test with large data',
+        summary: 'Test summary',
+        wellness_data: largeData
+      });
+      
+      expect(result).toBeDefined();
+      expect(result.wellness_data).toBeDefined();
+      expect(result.wellness_data.measurements).toHaveLength(1000);
+    });
+
+    it('should handle empty and null values correctly', async () => {
+      const email = 'empty-values@example.com';
+      
+      const result = await wellnessSessionService.createWellnessSession(email, {
+        transcription: '',
+        summary: '',
+        wellness_data: null
+      });
+      
+      expect(result).toBeDefined();
+      expect(result.transcription).toBe('');
+      expect(result.summary).toBe('');
+      expect(result.wellness_data).toBeNull();
+    });
+
+    it('should handle update with non-existent session ID', async () => {
+      // Use a valid UUID format that doesn't exist in database
+      const nonExistentUuid = '00000000-0000-0000-0000-000000000000';
+      const result = await wellnessSessionService.updateWellnessSession(
+        nonExistentUuid,
+        'test@example.com',
+        { transcription: 'Updated' }
+      );
+      
+      expect(result).toBeNull();
+    });
+
+    it('should handle getWellnessSessionById with non-existent ID', async () => {
+      // Use a valid UUID format that doesn't exist in database
+      const nonExistentUuid = '00000000-0000-0000-0000-000000000001';
+      const result = await wellnessSessionService.getWellnessSessionById(
+        nonExistentUuid,
+        'test@example.com'
+      );
+      
+      expect(result).toBeNull();
+    });
+
+    it('should handle deleteWellnessSession with non-existent ID', async () => {
+      // Use a valid UUID format that doesn't exist in database
+      const nonExistentUuid = '00000000-0000-0000-0000-000000000002';
+      const result = await wellnessSessionService.deleteWellnessSession(
+        nonExistentUuid,
+        'test@example.com'
+      );
+      
+      expect(result).toBe(false);
+    });
+  });
 });

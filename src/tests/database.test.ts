@@ -267,7 +267,10 @@ describe('Database Integration Tests', () => {
       // Count should be reset to 0 at start of each test (or contain only current test data)
       // Since this runs after other tests have created data in the same test run,
       // we can't guarantee 0, but we can verify the cleanup mechanism works
-      expect(typeof initialCount?.count).toBe('number');
+      // PostgreSQL returns count as string, so we convert it
+      const countValue = parseInt(initialCount?.count as string, 10);
+      expect(typeof countValue).toBe('number');
+      expect(countValue).toBeGreaterThanOrEqual(0);
     });
   });
 });

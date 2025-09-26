@@ -30,7 +30,9 @@ module.exports = {
   ],
   setupFilesAfterEnv: ['<rootDir>/src/tests/setup.ts'],
   testTimeout: 30000,
-  testEnvironment: 'node',
-  globalSetup: undefined,
-  globalTeardown: undefined,
+  // Run tests sequentially to avoid database conflicts
+  maxWorkers: 1,
+  // Ensure tests run in isolation
+  forceExit: true,
+  detectOpenHandles: true,
 };
