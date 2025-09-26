@@ -96,6 +96,32 @@ describe('Prompt API Routes', () => {
       expect(response.body).toHaveProperty('success');
       expect(typeof response.body.success).toBe('boolean');
     });
+
+    it('should persist prompt updates between PUT and GET requests', async () => {
+      // First, update the prompt
+      const updateResponse = await request(app)
+        .put('/api/prompts/demographics_baseline')
+        .send({
+          question_prompt: 'UPDATED: This should persist in database',
+          extraction_prompt: 'UPDATED: This extraction should also persist'
+        })
+        .expect('Content-Type', /json/)
+        .expect(200);
+
+      expect(updateResponse.body.success).toBe(true);
+      
+      // Then, verify the changes are reflected in GET
+      const getResponse = await request(app)
+        .get('/api/prompts')
+        .expect('Content-Type', /json/)
+        .expect(200);
+
+      expect(getResponse.body.success).toBe(true);
+      expect(getResponse.body.data.demographics_baseline.question_prompt)
+        .toBe('UPDATED: This should persist in database');
+      expect(getResponse.body.data.demographics_baseline.extraction_prompt)
+        .toBe('UPDATED: This extraction should also persist');
+    });
   });
 
 

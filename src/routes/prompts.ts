@@ -1,6 +1,6 @@
 import express from 'express';
 import { WELLNESS_PROMPTS, WellnessPrompts } from '../config/wellnessPrompts';
-import { db } from '../database/knex';
+import { getDb } from '../database';
 
 const router = express.Router();
 
@@ -11,24 +11,23 @@ const router = express.Router();
 router.get('/', async (req, res) => {
   try {
     // Get custom prompts from database
-    const customPrompts = await db('custom_prompts').select('*');
+    const customPrompts = await getDb()('custom_prompts').select('*');
     
-    // Start with hardcoded defaults
-    const finalPrompts: WellnessPrompts = { ...WELLNESS_PROMPTS };
+    const finalPrompts: WellnessPrompts = JSON.parse(JSON.stringify(WELLNESS_PROMPTS));
     
     // Override with custom prompts if they exist
     customPrompts.forEach(custom => {
       if (finalPrompts[custom.stage_id]) {
-        // Merge custom prompts with defaults, only override non-null values
+        // If custom record exists, use it completely (overrides defaults)
         const validFields = ['question_prompt', 'extraction_prompt'];
         validFields.forEach(field => {
-          if (custom[field]) {
+          if (custom[field] !== null) {
             (finalPrompts[custom.stage_id] as any)[field] = custom[field];
           }
         });
       }
     });
-
+    
     res.json({
       success: true,
       data: finalPrompts
@@ -37,7 +36,6 @@ router.get('/', async (req, res) => {
     console.error('Error fetching prompts:', error);
     res.status(500).json({
       success: false,
-      error: 'Database connection failed - unable to fetch prompts'
     });
   }
 });
@@ -59,40 +57,54 @@ router.put('/:stageId', async (req, res) => {
       });
     }
 
-    // Validate prompt fields
     const validFields = ['question_prompt', 'extraction_prompt'];
-    const updateData: any = { stage_id: stageId };
     
-    validFields.forEach(field => {
-      if (updates[field] !== undefined) {
-        updateData[field] = updates[field];
+    // Check if we should delete (if any provided field is null or empty)
+    const shouldDelete = validFields.some(field => {
+      if (updates.hasOwnProperty(field)) {
+        const value = updates[field];
+        return value === null || value === undefined || value === '';
       }
+      return false;
     });
 
-    // Check if custom prompt already exists
-    const existing = await db('custom_prompts').where('stage_id', stageId).first();
-    
-    if (existing) {
-      // Update existing custom prompt
-      await db('custom_prompts')
-        .where('stage_id', stageId)
-        .update({
-          ...updateData,
-          updated_at: new Date()
-        });
+    if (shouldDelete) {
+      // Delete custom prompt to return to defaults
+      await getDb()('custom_prompts').where('stage_id', stageId).del();
     } else {
-      // Insert new custom prompt
-      await db('custom_prompts').insert(updateData);
+      // Prepare update data
+      const updateData: any = { stage_id: stageId };
+      validFields.forEach(field => {
+        if (updates.hasOwnProperty(field)) {
+          updateData[field] = updates[field];
+        }
+      });
+
+      // Check if custom prompt already exists
+      const existing = await getDb()('custom_prompts').where('stage_id', stageId).first();
+      
+      if (existing) {
+        // Update existing custom prompt
+        await getDb()('custom_prompts')
+          .where('stage_id', stageId)
+          .update({
+            ...updateData,
+            updated_at: new Date()
+          });
+      } else {
+        // Insert new custom prompt
+        await getDb()('custom_prompts').insert(updateData);
+      }
     }
 
-    // Return updated prompts for this stage
-    const updated = await db('custom_prompts').where('stage_id', stageId).first();
-    const stagePrompts = { ...WELLNESS_PROMPTS[stageId] };
+    // Return current prompts for this stage (either defaults or custom)
+    const updated = await getDb()('custom_prompts').where('stage_id', stageId).first();
+    const stagePrompts = JSON.parse(JSON.stringify(WELLNESS_PROMPTS[stageId]));
     
-    // Merge with custom values
+    // If custom values exist, use them; otherwise keep defaults
     if (updated) {
       validFields.forEach(field => {
-        if (updated[field]) {
+        if (updated[field] !== null) {
           (stagePrompts as any)[field] = updated[field];
         }
       });
@@ -111,6 +123,49 @@ router.put('/:stageId', async (req, res) => {
     res.status(500).json({
       success: false,
       error: 'Failed to update prompts'
+    });
+  }
+});
+
+/**
+ * GET /prompts/debug/:stageId
+ * Debug endpoint to check database state
+ */
+router.get('/debug/:stageId', async (req, res) => {
+  try {
+    const { stageId } = req.params;
+    const db = getDb();
+    
+    // Get custom prompt from database
+    const customPrompt = await db('custom_prompts').where('stage_id', stageId).first();
+    
+    // Get default prompt
+    const defaultPrompt = WELLNESS_PROMPTS[stageId];
+    
+    res.json({
+      success: true,
+      debug: {
+        stageId,
+        database_type: db.client.constructor.name,
+        database_config: {
+          client: db.client.config.client,
+          filename: db.client.config.connection?.filename,
+          database: db.client.config.connection?.database
+        },
+        custom_prompt_from_db: customPrompt,
+        default_prompt: defaultPrompt,
+        final_merged: customPrompt ? {
+          question_prompt: customPrompt.question_prompt !== null ? customPrompt.question_prompt : defaultPrompt?.question_prompt,
+          extraction_prompt: customPrompt.extraction_prompt !== null ? customPrompt.extraction_prompt : defaultPrompt?.extraction_prompt
+        } : defaultPrompt,
+        timestamp: new Date().toISOString()
+      }
+    });
+  } catch (error) {
+    console.error('Debug error:', error);
+    res.status(500).json({
+      success: false,
+      error: error instanceof Error ? error.message : 'Unknown error'
     });
   }
 });
