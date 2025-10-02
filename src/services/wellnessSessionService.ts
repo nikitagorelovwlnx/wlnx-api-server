@@ -124,7 +124,7 @@ export class WellnessSessionService {
       updateData.summary = updates.summary;
     }
     if (updates.bot_conversation !== undefined) {
-      updateData.bot_conversation = updates.bot_conversation;
+      updateData.bot_conversation = updates.bot_conversation || null;
     }
     if (updates.wellness_data !== undefined) {
       // Serialize wellness_data for PostgreSQL JSONB

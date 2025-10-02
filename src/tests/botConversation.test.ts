@@ -148,8 +148,8 @@ describe('Bot Conversation API', () => {
         .send(updateData)
         .expect(200);
 
-      // Empty string gets stored as empty string in updates
-      expect(response.body.result.bot_conversation).toBe('');
+      // Empty string gets converted to null in updates (consistent with create)
+      expect(response.body.result.bot_conversation).toBe(null);
     });
   });
 
