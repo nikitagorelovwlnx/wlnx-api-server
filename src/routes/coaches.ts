@@ -32,6 +32,16 @@ router.get('/', async (req, res) => {
 router.get('/:id', async (req, res) => {
   try {
     const { id } = req.params;
+    
+    // Validate UUID format
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+    if (!uuidRegex.test(id)) {
+      return res.status(404).json({
+        success: false,
+        error: `Coach with id ${id} not found`
+      });
+    }
+    
     const coach = await getCoachById(id);
     
     if (!coach) {
@@ -62,6 +72,15 @@ router.put('/:id', async (req, res) => {
   try {
     const { id } = req.params;
     const updateData: UpdateCoachRequest = req.body;
+    
+    // Validate UUID format
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+    if (!uuidRegex.test(id)) {
+      return res.status(404).json({
+        success: false,
+        error: `Coach with id ${id} not found`
+      });
+    }
     
     // Validate required field
     if (!updateData.coach_prompt_content || updateData.coach_prompt_content.trim() === '') {
