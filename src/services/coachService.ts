@@ -48,13 +48,3 @@ export async function updateCoachPrompt(id: string, updateData: UpdateCoachReque
   return await getCoachById(id);
 }
 
-/**
- * Get active coaches only
- */
-export async function getActiveCoaches(): Promise<Coach[]> {
-  const db = getDb();
-  return await db('coaches')
-    .select('*')
-    .where('is_active', true)
-    .orderBy('created_at', 'asc');
-}

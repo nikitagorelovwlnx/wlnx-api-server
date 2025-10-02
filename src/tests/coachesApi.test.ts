@@ -258,6 +258,25 @@ Use emojis appropriately and maintain a warm, supportive tone! 😊`;
       expect(response.body.error).toBeDefined();
       expect(typeof response.body.error).toBe('string');
     });
+
+    it('should handle database connection errors gracefully', async () => {
+      // Test by breaking the coach service temporarily
+      const originalGetAllCoaches = require('../services/coachService').getAllCoaches;
+      
+      // Mock the service to throw an error
+      const coachService = require('../services/coachService');
+      coachService.getAllCoaches = jest.fn().mockRejectedValue(new Error('Database connection failed'));
+      
+      const response = await request(app)
+        .get('/api/coaches')
+        .expect(500);
+
+      expect(response.body.success).toBe(false);
+      expect(response.body.error).toBe('Failed to fetch coaches');
+      
+      // Restore original function
+      coachService.getAllCoaches = originalGetAllCoaches;
+    });
   });
 
   describe('Coach data validation', () => {
