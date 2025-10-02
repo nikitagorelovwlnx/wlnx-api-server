@@ -6,11 +6,13 @@ Lightweight TypeScript backend with PostgreSQL for wellness coaching session sto
 
 - ✅ Email-based user identification (no authentication required)
 - ✅ Wellness coaching session storage with transcriptions and summaries
+- ✅ **Bot Conversation Tracking** - Store full bot conversation transcripts alongside session data
 - ✅ User session history and statistics
 - ✅ RESTful API for session management (CRUD operations)
 - ✅ **FormSpec v2** - Dynamic form schema management with versioning
 - ✅ Form schema API for client UI rendering
 - ✅ **Prompt Management** - Fallback system: DB → Hardcoded defaults with custom modifications
+- ✅ **Coaches System** - Manage wellness coach personas and their prompt content
 - ✅ Bot integration API for dynamic prompt delivery
 - ✅ Full test coverage with Jest
 - ✅ One-click server startup
@@ -114,11 +116,16 @@ If you have PostgreSQL installed locally:
 - `GET /api/users` - Get all users with their complete session history (includes all transcriptions and summaries)
 
 ### Wellness Sessions
-- `POST /api/interviews` - Create wellness session (requires email, transcription, summary; optional wellness_data JSON)
+- `POST /api/interviews` - Create wellness session (requires email, transcription, summary; optional bot_conversation, wellness_data JSON)
 - `GET /api/interviews` - Get user sessions (requires email query parameter)
 - `GET /api/interviews/:id` - Get specific session (requires email query parameter)
-- `PUT /api/interviews/:id` - Update session (requires email in body; optional wellness_data JSON)
+- `PUT /api/interviews/:id` - Update session (requires email in body; optional bot_conversation, wellness_data JSON)
 - `DELETE /api/interviews/:id` - Delete session (requires email in body)
+
+### Coaches Management
+- `GET /api/coaches` - Get all wellness coach personas
+- `GET /api/coaches/:id` - Get specific coach by ID
+- `PUT /api/coaches/:id` - Update coach prompt content (only coach_prompt_content field)
 
 ### Form Schema (Hardcoded)
 - `GET /api/form-schemas` - Get current wellness form schema (hardcoded, single version)
@@ -129,6 +136,15 @@ If you have PostgreSQL installed locally:
 
 ### Health Check
 - `GET /health` - Server health status
+
+## 📚 Detailed API Documentation
+
+For comprehensive API documentation with examples, request/response schemas, and usage guides:
+
+- **[Wellness Sessions API](./WELLNESS_SESSION_API.md)** - Complete guide for wellness session management (includes bot_conversation field)
+- **[Coaches API](./COACHES_API.md)** - Coach persona management and prompt content updates
+- **[Form Schema API](./docs/form-schema-api.md)** - Dynamic form schema management
+- **[Form Spec Integration](./docs/form-spec-integration.md)** - Integration guide for FormSpec v2
 
 ## Usage Examples
 
