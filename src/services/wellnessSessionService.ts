@@ -25,6 +25,7 @@ export class WellnessSessionService {
       user_id: email,
       transcription: data.transcription,
       summary: data.summary,
+      bot_conversation: data.bot_conversation || null,
       wellness_data: serializedWellnessData,
       created_at: now,
       updated_at: now,
@@ -121,6 +122,9 @@ export class WellnessSessionService {
     }
     if (updates.summary !== undefined) {
       updateData.summary = updates.summary;
+    }
+    if (updates.bot_conversation !== undefined) {
+      updateData.bot_conversation = updates.bot_conversation;
     }
     if (updates.wellness_data !== undefined) {
       // Serialize wellness_data for PostgreSQL JSONB

@@ -6,6 +6,7 @@ import interviewRoutes from './routes/interviewRoutes';
 import userRoutes from './routes/userRoutes';
 import formSchemaRoutes from './routes/formSchemas';
 import promptRoutes from './routes/prompts';
+import coachRoutes from './routes/coaches';
 
 dotenv.config();
 
@@ -36,6 +37,7 @@ app.use('/api/interviews', interviewRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/form-schemas', formSchemaRoutes);
 app.use('/api/prompts', promptRoutes);
+app.use('/api/coaches', coachRoutes);
 
 // Error handling middleware
 app.use((err: Error, req: express.Request, res: express.Response, next: express.NextFunction) => {
