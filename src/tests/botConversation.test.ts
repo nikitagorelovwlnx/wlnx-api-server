@@ -18,7 +18,7 @@ describe('Bot Conversation API', () => {
         email: 'test@example.com',
         transcription: 'User spoke about wellness goals',
         summary: 'User wants to improve sleep',
-        bot_conversation: 'Bot: Hello! How are you?\nUser: I am tired\nBot: Let me help you with sleep tips'
+        bot_conversation: 'Hello! How are you feeling today? I am tired and need help with sleep. Here are some sleep tips for you.'
       };
 
       const response = await request(app)
@@ -30,7 +30,7 @@ describe('Bot Conversation API', () => {
         user_id: 'test@example.com',
         transcription: 'User spoke about wellness goals',
         summary: 'User wants to improve sleep',
-        bot_conversation: 'Bot: Hello! How are you?\nUser: I am tired\nBot: Let me help you with sleep tips'
+        bot_conversation: 'Hello! How are you feeling today? I am tired and need help with sleep. Here are some sleep tips for you.'
       });
       expect(response.body.result.id).toBeDefined();
       expect(response.body.result.created_at).toBeDefined();
@@ -93,7 +93,7 @@ describe('Bot Conversation API', () => {
     it('should update bot_conversation field', async () => {
       const updateData = {
         email: 'test@example.com',
-        bot_conversation: 'Bot: Hello again!\nUser: Hi bot\nBot: How can I help you today?\nUser: I need sleep advice\nBot: Here are some tips...'
+        bot_conversation: 'Updated conversation content with wellness advice and sleep recommendations.'
       };
 
       const response = await request(app)
@@ -220,8 +220,8 @@ describe('Bot Conversation API', () => {
   describe('Bot conversation with long content', () => {
     it('should handle very long bot conversations', async () => {
       const longConversation = Array(100).fill(0).map((_, i) => 
-        `Bot: Message ${i}\nUser: Response ${i}`
-      ).join('\n');
+        `Message ${i} with response ${i} and additional wellness content`
+      ).join(' ');
 
       const sessionData = {
         email: 'test@example.com',
@@ -242,15 +242,7 @@ describe('Bot Conversation API', () => {
 
   describe('Bot conversation with special characters', () => {
     it('should handle bot conversations with special characters and emojis', async () => {
-      const specialConversation = `Bot: Hello! 😊 How are you feeling today?
-User: I'm feeling stressed 😰 about work...
-Bot: I understand! Let's work on some relaxation techniques 🧘‍♀️
-User: That sounds great! 👍
-Bot: Here are some breathing exercises: 
-1️⃣ Inhale for 4 seconds
-2️⃣ Hold for 4 seconds  
-3️⃣ Exhale for 6 seconds
-User: Thank you! This is very helpful 🙏`;
+      const specialConversation = `Hello! 😊 How are you feeling today? I'm feeling stressed 😰 about work... I understand! Let's work on some relaxation techniques 🧘‍♀️ That sounds great! 👍 Here are some breathing exercises: 1️⃣ Inhale for 4 seconds 2️⃣ Hold for 4 seconds 3️⃣ Exhale for 6 seconds Thank you! This is very helpful 🙏`;
 
       const sessionData = {
         email: 'test@example.com',

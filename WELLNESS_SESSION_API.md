@@ -35,7 +35,7 @@ Create a new wellness coaching session.
   "email": "user@example.com",
   "transcription": "Full conversation transcript from wellness coach session...",
   "summary": "Summary of the wellness coaching session including key insights...",
-  "bot_conversation": "Bot: Hello! How are you feeling today?\nUser: I'm feeling stressed...\nBot: Let me help you with that...",
+  "bot_conversation": "Hello! How are you feeling today? I'm feeling stressed about work. Let me help you with some relaxation techniques and wellness advice.",
   "wellness_data": {
     "stress_level": "high",
     "sleep_hours": 6,
@@ -52,7 +52,7 @@ curl -X POST http://localhost:3000/api/interviews \
     "email": "user@example.com",
     "transcription": "Coach: How are you feeling today? Client: I feel stressed about work...",
     "summary": "Client discussed work-related stress. Recommended mindfulness techniques.",
-    "bot_conversation": "Bot: Hello! How are you today?\nUser: Stressed about work\nBot: I understand. Let me help you with some techniques..."
+    "bot_conversation": "Hello! How are you today? I'm stressed about work. I understand. Let me help you with some wellness techniques and relaxation methods."
   }'
 ```
 
@@ -64,7 +64,7 @@ curl -X POST http://localhost:3000/api/interviews \
     "user_id": "user@example.com",
     "transcription": "Full conversation transcript...",
     "summary": "Summary of the session...",
-    "bot_conversation": "Bot: Hello! How are you today?\nUser: Stressed about work\nBot: I understand...",
+    "bot_conversation": "Hello! How are you today? I'm stressed about work. I understand. Let me help you with wellness techniques.",
     "wellness_data": null,
     "created_at": "2025-09-17T00:50:26.537Z",
     "updated_at": "2025-09-17T00:50:26.537Z"
@@ -104,7 +104,7 @@ curl -X GET "http://localhost:3000/api/interviews?email=user@example.com&limit=1
       "user_id": "user@example.com",
       "transcription": "Full conversation transcript...",
       "summary": "Summary of the session...",
-      "bot_conversation": "Bot: Hello! How are you today?\nUser: Stressed about work\nBot: I understand...",
+      "bot_conversation": "Hello! How are you today? I'm stressed about work. I understand. Let me help you with wellness techniques.",
       "wellness_data": null,
       "created_at": "2025-09-17T00:50:26.537Z",
       "updated_at": "2025-09-17T00:50:26.537Z"
